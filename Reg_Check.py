@@ -1,6 +1,6 @@
 from termcolor import colored
-import stig
 from Map_Regs import reg_keys_to_human
+import STIG
 
 insides = [
     "checkid"
@@ -16,7 +16,7 @@ insides = [
     "version"
 ]
 
-cats = stig.win_server_2012_r2.get('stig')['findings']
+cats = STIG.win_server_2012_r2.get('stig')['findings']
 
 
 def user_interaction():
@@ -24,10 +24,10 @@ def user_interaction():
         try:
             server_version = int(input('1) Server 2008 R2\n2) Server 2012 R2:\n>'))
             if server_version == 1:
-                cat = stig.win_server_2008_r2.get('stig')['findings']
+                cat = STIG.win_server_2008_r2.get('stig')['findings']
                 return cat
             elif server_version == 2:
-                cat = stig.win_server_2012_r2.get('stig')['findings']
+                cat = STIG.win_server_2012_r2.get('stig')['findings']
                 return cat
         except (TypeError, ValueError) as type_value_error:
             print(f'Error: {type_value_error}')
@@ -67,9 +67,9 @@ def read_pulled_txt(file_name: str):
     for item in only_configs:
         if item != ['']:
             if len(item) > 1:
-                key = item[0].lower()
-                value = item[1]
-                config_dict = {key: value}
+                kee = item[0].lower()
+                wal = item[1]
+                config_dict = {kee: wal}
                 pulled_configs_dict.update(config_dict)
 
     return pulled_configs_dict
