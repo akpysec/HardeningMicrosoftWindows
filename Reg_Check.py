@@ -4,6 +4,28 @@ from STIG import win_server_2012_r2
 cats = win_server_2012_r2.get('stig')['findings']
 
 
+def get_value(gett: str):
+
+    all_values = list()
+    all_titles = list()
+
+    for ks, vs in cats.items():
+        if vs.get('checktext').strip('\n').__contains__(':'):
+            raw_list = list()
+            raw_list.append(vs.get('checktext').strip('\n'))
+
+            for item in raw_list:
+                for i in item.split('\n'):
+                    if i.__contains__('Value:'):
+                        all_values.append(i.strip('Value: ').lower())
+                        all_titles.append(vs.get('title'))
+
+    keys_values_harden = dict(zip(all_titles, all_values))
+    # print(keys_values_harden)
+
+    return keys_values_harden.get(gett)
+
+
 # Re-writes STIG title: value_name for human readable format
 def get_stig_dictionary():
     computer_settings = dict()
@@ -64,12 +86,25 @@ def read_pulled_txt(file_name: str):
                 wal = item[1]
                 config_dict = {kee: wal}
                 pulled_configs_dict.update(config_dict)
-    
+
     # print(pulled_configs_dict)
     return pulled_configs_dict
 
 
-for key, value in read_pulled_txt(file_name='transcript.txt').items():
-    for k, v in get_stig_dictionary().items():
-        if key == v:
-            print(k, value)
+# Dumb Check to see what configs are not complient with best practice
+def dry_check():
+    for key, value in sorted(read_pulled_txt(file_name='andreyk-laptop.txt').items()):
+        for k, v in get_stig_dictionary().items():
+            if key == v:
+                if str(value) == get_value(gett=k):
+                    print(k, colored(value, 'blue'), colored(get_value(gett=k), 'green'))
+                elif str(value) != get_value(gett=k):
+                    print(k, colored(value, 'red'), colored(get_value(gett=k), 'green'))
+
+
+def wet_check():
+    """A function to deal with findings from dry_check function"""
+    return
+
+
+dry_check()
