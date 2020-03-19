@@ -26,9 +26,6 @@ def get_stig_dictionary():
                         # print({v.get('title'): values})
 
     # print(computer_settings)
-    # for setting, sett in sorted(computer_settings.items()):
-    #     print(setting, sett)
-
     return computer_settings
 
 
@@ -39,7 +36,6 @@ def get_item_property():
 
         if vp.get('checktext').strip('\n').__contains__(':'):
             raw_list = list()
-            # print(colored("*" * 100, 'yellow'))
             raw_list.append(vp.get('checktext').strip('\n'))
 
             for item in raw_list:
@@ -72,7 +68,8 @@ def read_pulled_txt(file_name: str):
                 wal = item[1]
                 config_dict = {kee: wal}
                 pulled_configs_dict.update(config_dict)
-
+    
+    # print(pulled_configs_dict)
     return pulled_configs_dict
 
 
