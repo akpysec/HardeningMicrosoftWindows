@@ -1,46 +1,46 @@
 from termcolor import colored
-from Map_Regs import reg_keys_to_human
-import STIG
+from STIG import win_server_2012_r2
 
-insides = [
-    "checkid"
-    "checktext"
-    "description"
-    "fixid"
-    "fixtext"
-    "iacontrols"
-    "id"
-    "ruleID"
-    "severity"
-    "title"
-    "version"
-]
-
-cats = STIG.win_server_2012_r2.get('stig')['findings']
+cats = win_server_2012_r2.get('stig')['findings']
 
 
-def user_interaction():
-    while True:
-        try:
-            server_version = int(input('1) Server 2008 R2\n2) Server 2012 R2:\n>'))
-            if server_version == 1:
-                cat = STIG.win_server_2008_r2.get('stig')['findings']
-                return cat
-            elif server_version == 2:
-                cat = STIG.win_server_2012_r2.get('stig')['findings']
-                return cat
-        except (TypeError, ValueError) as type_value_error:
-            print(f'Error: {type_value_error}')
+# Re-writes STIG title: value_name for human readable format
+def get_stig_dictionary():
+    computer_settings = dict()
+    for ks, vs in cats.items():
+
+        if vs.get('checktext').strip('\n').__contains__(':') and vs.get('title'):
+            raw_list = list()
+            titles = list()
+            titles.append(vs.get('title'))
+            # print(v.get('title'))
+
+            raw_list.append(vs.get('checktext').strip('\n'))
+
+            for item in raw_list:
+                for i in item.split('\n'):
+                    if i.__contains__('Value Name'):
+                        values = i.split(': ')[1].strip(' ').lower()
+                        in_dict = {vs.get('title'): values}
+                        computer_settings.update(in_dict)
+                        # print({v.get('title'): values})
+
+    # print(computer_settings)
+    # for setting, sett in sorted(computer_settings.items()):
+    #     print(setting, sett)
+
+    return computer_settings
 
 
+# Function to create a Get-ItemProperty command list for all the registry values
 def get_item_property():
     new_listing = list()
-    for k, v in cats.items():
+    for kp, vp in cats.items():
 
-        if v.get('checktext').strip('\n').__contains__(':'):
+        if vp.get('checktext').strip('\n').__contains__(':'):
             raw_list = list()
             # print(colored("*" * 100, 'yellow'))
-            raw_list.append(v.get('checktext').strip('\n'))
+            raw_list.append(vp.get('checktext').strip('\n'))
 
             for item in raw_list:
                 for i in item.split('\n'):
@@ -58,6 +58,7 @@ def get_item_property():
     return ''.join(new_list).strip('\n')
 
 
+# Function that reads the output from .txt exported file from .ps1 script with transcript
 def read_pulled_txt(file_name: str):
     only_configs = list()
     pulled_configs_dict = dict()
@@ -75,57 +76,7 @@ def read_pulled_txt(file_name: str):
     return pulled_configs_dict
 
 
-def combine_checks():
-    new_listing = list()
-    total_dict = dict()
-    for k, v in cats.items():
-
-        if v.get('checktext').strip('\n').__contains__(':'):
-            raw_list = list()
-            raw_list.append(v.get('checktext').strip('\n'))
-
-            for item in raw_list:
-                for i in item.split('\n'):
-                    if i.__contains__('Value Name'):
-                        values = i.split(': ')[1]
-                        values = values.lstrip(' ').lower()
-                        new_listing.append(values)
-                        combo = {values: v.get('title').strip('.')}
-                        total_dict.update(combo)
-
-    return total_dict
-
-
-def if_er_engine():
-    pulled_from_server = read_pulled_txt(file_name='pulled.txt')
-
-    vals = {'0': 'Disabled', '1': 'Enabled'}
-
-    for ks in combine_checks().keys():
-        if ks in pulled_from_server.keys():
-            length = len(combine_checks().get(ks))
-            if vals.get(pulled_from_server.get(ks)) is None:
-                print(combine_checks().get(ks), colored(pulled_from_server.get(ks), 'cyan'))
-                print(colored("*" * length, 'yellow'))
-            else:
-                print(combine_checks().get(ks), '-', colored(vals.get(pulled_from_server.get(ks)), 'magenta'))
-                print(colored("*" * len(combine_checks().get(ks)), 'yellow'))
-
-
-# if_er_engine()
-# print(get_item_property())
-
-f_in_list = list()
-for key, value in read_pulled_txt(file_name='pulled_massive.txt').items():
-    # print(k, v)
-    if reg_keys_to_human.get(key) is None:
-        print(colored(f'Missing mapping for - {key}:', 'red'), colored(value, 'cyan'))
-        new = key + '~ ' + value
-        f_in_list.append(new)
-    else:
-        print(reg_keys_to_human.get(key), colored(value, 'cyan'))
-        old = reg_keys_to_human.get(key) + '~ ' + value
-        f_in_list.append(old)
-
-for f in sorted(f_in_list):
-    print(f)
+for key, value in read_pulled_txt(file_name='transcript.txt').items():
+    for k, v in get_stig_dictionary().items():
+        if key == v:
+            print(k, value)
