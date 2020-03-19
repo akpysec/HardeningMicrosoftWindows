@@ -9,7 +9,7 @@ def get_stig_dictionary():
     computer_settings = dict()
     for ks, vs in cats.items():
 
-        if vs.get('checktext').strip('\n').__contains__(':') and vs.get('title'):
+        if vs.get('checktext').strip('\n').__contains__(':'):
             raw_list = list()
             titles = list()
             titles.append(vs.get('title'))
