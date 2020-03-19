@@ -11,10 +11,6 @@ def get_stig_dictionary():
 
         if vs.get('checktext').strip('\n').__contains__(':'):
             raw_list = list()
-            titles = list()
-            titles.append(vs.get('title'))
-            # print(v.get('title'))
-
             raw_list.append(vs.get('checktext').strip('\n'))
 
             for item in raw_list:
