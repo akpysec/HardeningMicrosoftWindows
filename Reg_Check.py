@@ -6,6 +6,8 @@ cats = win_server_2012_r2.get('stig')['findings']
 
 def get_value(gett: str):
 
+    """A function that returns best practice configs"""
+
     all_values = list()
     all_titles = list()
 
@@ -26,8 +28,10 @@ def get_value(gett: str):
     return keys_values_harden.get(gett)
 
 
-# Re-writes STIG title: value_name for human readable format
 def get_stig_dictionary():
+    
+    """Re-writes STIG title: value_name for human readable format"""
+    
     computer_settings = dict()
     for ks, vs in cats.items():
 
@@ -47,8 +51,10 @@ def get_stig_dictionary():
     return computer_settings
 
 
-# Function to create a Get-ItemProperty command list for all the registry values
 def get_item_property():
+    
+    """Function to create a Get-ItemProperty command list for all the registry values"""
+    
     new_listing = list()
     for kp, vp in cats.items():
 
@@ -72,8 +78,10 @@ def get_item_property():
     return ''.join(new_list).strip('\n')
 
 
-# Function that reads the output from .txt exported file from .ps1 script with transcript
 def read_pulled_txt(file_name: str):
+    
+    """Function that reads the output from .txt exported file from .ps1 script with transcript"""
+    
     only_configs = list()
     pulled_configs_dict = dict()
     with open(file_name, 'r') as pulled:
@@ -91,8 +99,10 @@ def read_pulled_txt(file_name: str):
     return pulled_configs_dict
 
 
-# Dumb Check to see what configs are not complient with best practice
 def dry_check():
+    
+    """Dumb Check to see what configs are not compliant with best practice"""
+    
     for key, value in sorted(read_pulled_txt(file_name='andreyk-laptop.txt').items()):
         for k, v in get_stig_dictionary().items():
             if key == v:
