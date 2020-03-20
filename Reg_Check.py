@@ -105,7 +105,7 @@ def dry_check():
 
     not_compliant = dict()
 
-    for key, value in sorted(read_pulled_txt(file_name='laptop.txt').items()):
+    for key, value in sorted(read_pulled_txt(file_name='home_lap.txt').items()):
         for k, v in get_stig_dictionary().items():
             # Default values check
             if key == v:
@@ -148,7 +148,7 @@ def wet_check():
             # Runs another check after one more stripping
             if setting_in_place not in temp_list:
                 print(wet_key, colored(setting_in_place, 'red'), colored(temp_list, 'green'))
-
+                pass
     # print(shle)
     return shle
 
