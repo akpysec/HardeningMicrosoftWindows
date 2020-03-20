@@ -149,7 +149,7 @@ def wet_check():
             if setting_in_place not in temp_list:
                 print(wet_key, colored(setting_in_place, 'red'), colored(temp_list, 'green'))
 
-    print(shle)
+    # print(shle)
     return shle
 
 
