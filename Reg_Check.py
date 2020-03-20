@@ -1,5 +1,7 @@
-from termcolor import colored
+from termcolor2 import colored
 from STIG import win_server_2012_r2
+import colorama
+colorama.init()
 
 cats = win_server_2012_r2.get('stig')['findings']
 
