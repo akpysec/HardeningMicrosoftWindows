@@ -1,13 +1,16 @@
 from termcolor2 import colored
 from STIG import win_server_2012_r2
 import colorama
+
 colorama.init()
 
 cats = win_server_2012_r2.get('stig')['findings']
+# transcript = str(input('Put the output file from PowerShell script in the same folder as this script,\n'
+#                        'Enter file name (with extension) to run the Best Practice Check:\n>'))
+transcript = 'laptop.txt'
 
 
 def get_value(gett: str):
-
     """A function that returns best practice configs"""
 
     all_values = list()
@@ -30,8 +33,23 @@ def get_value(gett: str):
     return keys_values_harden.get(gett)
 
 
-def get_stig_dictionary():
+def get_severity(gett: str):
+    """Function to get Severity level for the Settings"""
 
+    main_dict = dict()
+
+    for sev_key, sev_value in cats.items():
+        all_severities = sev_value.get('severity')
+        all_titles = sev_value.get('title')
+        temp_dict = {all_titles: all_severities.upper()}
+        main_dict.update(temp_dict)
+
+    # print(main_dict)
+
+    return main_dict.get(gett)
+
+
+def get_stig_dictionary():
     """Re-writes STIG title: value_name for human readable format"""
 
     computer_settings = dict()
@@ -54,7 +72,6 @@ def get_stig_dictionary():
 
 
 def get_item_property():
-
     """Function to create a Get-ItemProperty command list for all the registry values"""
 
     new_listing = list()
@@ -80,8 +97,7 @@ def get_item_property():
     return ''.join(new_list).strip('\n')
 
 
-def read_pulled_txt(file_name: str):
-
+def read_pulled_txt(file_name: transcript):
     """Function that reads the output from .txt exported file from .ps1 script with transcript"""
 
     only_configs = list()
@@ -102,7 +118,6 @@ def read_pulled_txt(file_name: str):
 
 
 def dry_check():
-
     """Dumb Check to see what configs are not compliant with best practice"""
 
     not_compliant = dict()
@@ -124,10 +139,9 @@ def dry_check():
 
 
 def wet_check():
-
     """A function to deal with findings from dry_check function"""
 
-    shle = dict()
+    findings_still_raw = dict()
 
     for wet_key, wet_value in dry_check().items():
 
@@ -149,23 +163,37 @@ def wet_check():
 
             # Runs another check after one more stripping
             if setting_in_place not in temp_list:
-                print(wet_key, colored(setting_in_place, 'red'), colored(temp_list, 'green'))
-                pass
-    # print(shle)
-    return shle
+                severities = get_severity(gett=wet_key)
+
+                if severities == 'LOW':
+                    print(wet_key, colored(setting_in_place, 'red'), colored(temp_list, 'green'),
+                          colored(severities, 'blue'))
+                elif severities == 'MEDIUM':
+                    print(wet_key, colored(setting_in_place, 'red'), colored(temp_list, 'green'),
+                          colored(severities, 'yellow'))
+                elif severities == 'HIGH':
+                    print(wet_key, colored(setting_in_place, 'red'), colored(temp_list, 'green'),
+                          colored(severities, 'red'))
+
+                for_shle = {wet_key: [setting_in_place, temp_list, severities]}
+                findings_still_raw.update(for_shle)
+
+    # print(findings_still_raw)
+    return findings_still_raw
 
 
 def super_wet_check():
-
     """Another function to clear the compliant settings and leave behind only non-compliant.
         this one has human (mine) logic in it"""
 
-    wet_check()
+    # for s_wet_keys, s_wet_values in wet_check().items():
+    #     print(s_wet_keys, s_wet_values)
 
     return
 
 
 super_wet_check()
 
-stop = input('\nPress "Enter" to quit...')
-stop
+
+# stop = input('\nPress "Enter" to quit...')
+# stop
