@@ -1,4 +1,4 @@
-# reg_reader
+# Hardening_for_Microsoft_Windows
 
 1) Run Powershell script to pull the Microsoft PC/Server Registries.
 
