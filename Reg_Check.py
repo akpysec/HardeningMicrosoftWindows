@@ -224,7 +224,7 @@ def wet_check():
 def final():
     """Another function to clear the compliant settings and leave behind only non-compliant.
         this one has human (mine) logic in it"""
-
+    print(colored('FINDINGS:', 'red'))
     for juice, cups in wet_check().items():
         if cups[2] == 'LOW':
             print(juice, colored(cups[0], 'red'), colored(cups[1], 'green'), colored(cups[2], 'blue'))
