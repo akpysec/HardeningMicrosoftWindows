@@ -5,9 +5,8 @@ import colorama
 colorama.init()
 
 cats = win_server_2012_r2.get('stig')['findings']
-# transcript = str(input('Put the output file from PowerShell script in the same folder as this script,\n'
-#                        'Enter file name (with extension) to run the Best Practice Check:\n>'))
-transcript = 'home_lap.txt'
+transcript = str(input('Put the output file from PowerShell script in the same folder as this script,\n'
+                       'Enter file name (with extension) to run the Best Practice Check:\n>'))
 
 
 def get_value(gett: str):
