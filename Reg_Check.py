@@ -7,7 +7,7 @@ colorama.init()
 cats = win_server_2012_r2.get('stig')['findings']
 # transcript = str(input('Put the output file from PowerShell script in the same folder as this script,\n'
 #                        'Enter file name (with extension) to run the Best Practice Check:\n>'))
-transcript = 'laptop.txt'
+transcript = 'home_lap.txt'
 
 
 def get_value(gett: str):
@@ -97,12 +97,12 @@ def get_item_property():
     return ''.join(new_list).strip('\n')
 
 
-def read_pulled_txt(file_name: transcript):
+def read_pulled_txt():
     """Function that reads the output from .txt exported file from .ps1 script with transcript"""
 
     only_configs = list()
     pulled_configs_dict = dict()
-    with open(file_name, 'r') as pulled:
+    with open(transcript, 'r') as pulled:
         for line in pulled.readlines():
             only_configs.append(line.strip('\n').split(' : '))
     for item in only_configs:
@@ -122,7 +122,7 @@ def dry_check():
 
     not_compliant = dict()
 
-    for key, value in sorted(read_pulled_txt(file_name='home_lap.txt').items()):
+    for key, value in sorted(read_pulled_txt().items()):
         for k, v in get_stig_dictionary().items():
             # Default values check
             if key == v:
@@ -155,8 +155,9 @@ def wet_check():
         temp_list = parentheses_less.split(' ')
         if setting_in_place in temp_list:
             # print(wet_key, colored(setting_in_place, 'blue'), colored(temp_list[temp_list.index(setting_in_place)],
-            # 'green'))
+            #                                                           'green'))
             pass
+
         # Shows only not matched
         elif setting_in_place not in temp_list:
             setting_in_place = setting_in_place.strip('{}')
@@ -165,35 +166,61 @@ def wet_check():
             if setting_in_place not in temp_list:
                 severities = get_severity(gett=wet_key)
 
-                if severities == 'LOW':
-                    print(wet_key, colored(setting_in_place, 'red'), colored(temp_list, 'green'),
-                          colored(severities, 'blue'))
-                elif severities == 'MEDIUM':
-                    print(wet_key, colored(setting_in_place, 'red'), colored(temp_list, 'green'),
-                          colored(severities, 'yellow'))
-                elif severities == 'HIGH':
-                    print(wet_key, colored(setting_in_place, 'red'), colored(temp_list, 'green'),
-                          colored(severities, 'red'))
-
                 for_shle = {wet_key: [setting_in_place, temp_list, severities]}
                 findings_still_raw.update(for_shle)
 
-    # print(findings_still_raw)
-    return findings_still_raw
+    # Special Values dictionary switch
+    miscellaneous = {
+        '537395200': 'Require NTLMv2 session security & Require 128-bit encryption',
+        '536870912': 'Require 128-bit encryption',
+        '0': 'No Minimum',
+        'default values after removing mrxsmb10 include the following, which are not a finding':
+            'Bowser, MRxSmb20, NSI or Bowser, MRxSmb30, NSI',
+        'blank': 'Blank',
+        'see below': 'Needs a Check',
+        'see message text below': '<=== Create a Legal Notice if Blank'
+    }
+
+    parsed_findings = dict()
+
+    for s_wet_keys, s_wet_values in sorted(findings_still_raw.items()):
+        if s_wet_values[1][0].startswith('0x'):
+            # print(s_wet_keys, miscellaneous.get(s_wet_values[0]), miscellaneous.get(' '.join(s_wet_values[1][1:])),
+            # s_wet_values[2])
+            parsed_v_1 = {s_wet_keys: [miscellaneous.get(s_wet_values[0]), miscellaneous.get(' '.join(s_wet_values[1][1:])), s_wet_values[2]]}
+            parsed_findings.update(parsed_v_1)
+            pass
+        elif not s_wet_values[1][0].startswith('0x'):
+            if len(s_wet_values[1][0]) == 1:
+                # print(s_wet_keys, s_wet_values[0], s_wet_values[1][0], s_wet_values[2])
+                parsed_v_2 = {s_wet_keys: [s_wet_values[0], s_wet_values[1][0], s_wet_values[2]]}
+                parsed_findings.update(parsed_v_2)
+                pass
+            elif len(s_wet_values[1][0]) > 2:
+                # print(s_wet_keys, s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2])
+                parsed_v_3 = {s_wet_keys: [s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2]]}
+                parsed_findings.update(parsed_v_3)
+
+    # print(parsed_findings)
+    return parsed_findings
 
 
 def super_wet_check():
     """Another function to clear the compliant settings and leave behind only non-compliant.
         this one has human (mine) logic in it"""
 
-    # for s_wet_keys, s_wet_values in wet_check().items():
-    #     print(s_wet_keys, s_wet_values)
+    for juice, cups in wet_check().items():
+        if cups[2] == 'LOW':
+            print(juice, colored(cups[0], 'red'), colored(cups[1], 'green'), colored(cups[2], 'blue'))
+        elif cups[2] == 'MEDIUM':
+            print(juice, colored(cups[0], 'red'), colored(cups[1], 'green'), colored(cups[2], 'yellow'))
+        elif cups[2] == 'HIGH':
+            print(juice, colored(cups[0], 'red'), colored(cups[1], 'green'), colored(cups[2], 'red'))
 
     return
 
 
 super_wet_check()
-
 
 # stop = input('\nPress "Enter" to quit...')
 # stop
