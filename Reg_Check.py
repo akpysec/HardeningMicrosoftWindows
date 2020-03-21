@@ -169,7 +169,7 @@ def wet_check():
                 for_shle = {wet_key: [setting_in_place, temp_list, severities]}
                 findings_still_raw.update(for_shle)
 
-    # Special Values dictionary switch
+    # Special Values dictionary switch to human readable format
     miscellaneous = {
         '537395200': 'Require NTLMv2 session security & Require 128-bit encryption',
         '536870912': 'Require 128-bit encryption',
@@ -178,34 +178,50 @@ def wet_check():
             'Bowser, MRxSmb20, NSI or Bowser, MRxSmb30, NSI',
         'blank': 'Blank',
         'see below': 'Needs a Check',
-        'see message text below': '<=== Create a Legal Notice if Blank'
+        'see message text below': '<=== Create a Legal Notice if Blank',
+        '65535': 'Not Configured'
     }
 
     parsed_findings = dict()
 
     for s_wet_keys, s_wet_values in sorted(findings_still_raw.items()):
         if s_wet_values[1][0].startswith('0x'):
-            # print(s_wet_keys, miscellaneous.get(s_wet_values[0]), miscellaneous.get(' '.join(s_wet_values[1][1:])),
-            # s_wet_values[2])
-            parsed_v_1 = {s_wet_keys: [miscellaneous.get(s_wet_values[0]), miscellaneous.get(' '.join(s_wet_values[1][1:])), s_wet_values[2]]}
+
+            parsed_v_1 = {
+                s_wet_keys: [miscellaneous.get(s_wet_values[0]), miscellaneous.get(' '.join(s_wet_values[1][1:])),
+                             s_wet_values[2]]}  # if None exception needed for the Fix
             parsed_findings.update(parsed_v_1)
-            pass
+            temporary = miscellaneous.get(' '.join(s_wet_values[1][1:]))
+            temporary_2 = miscellaneous.get(s_wet_values[0])
+
+            if temporary is None or temporary_2 is None:
+                parsed_v_1_5 = {s_wet_keys: [s_wet_values[0], ' '.join(s_wet_values[1][1:]), s_wet_values[2]]}
+                parsed_findings.update(parsed_v_1_5)
+
+                pass
+
         elif not s_wet_values[1][0].startswith('0x'):
             if len(s_wet_values[1][0]) == 1:
                 # print(s_wet_keys, s_wet_values[0], s_wet_values[1][0], s_wet_values[2])
                 parsed_v_2 = {s_wet_keys: [s_wet_values[0], s_wet_values[1][0], s_wet_values[2]]}
                 parsed_findings.update(parsed_v_2)
                 pass
+                if s_wet_values[0] == '65535':
+                    parsed_v_2_5 = {
+                        s_wet_keys: [miscellaneous.get(s_wet_values[0]), s_wet_values[1][0], s_wet_values[2]]}
+                    parsed_findings.update(parsed_v_2_5)
+                    pass
             elif len(s_wet_values[1][0]) > 2:
                 # print(s_wet_keys, s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2])
-                parsed_v_3 = {s_wet_keys: [s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2]]}
+                parsed_v_3 = {
+                    s_wet_keys: [s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2]]}
                 parsed_findings.update(parsed_v_3)
 
     # print(parsed_findings)
     return parsed_findings
 
 
-def super_wet_check():
+def final():
     """Another function to clear the compliant settings and leave behind only non-compliant.
         this one has human (mine) logic in it"""
 
@@ -220,7 +236,8 @@ def super_wet_check():
     return
 
 
-super_wet_check()
+# wet_check()
+final()
 
-# stop = input('\nPress "Enter" to quit...')
-# stop
+stop = input('\nPress "Enter" to quit...')
+stop
