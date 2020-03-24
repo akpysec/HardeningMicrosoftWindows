@@ -5,8 +5,9 @@ import colorama
 colorama.init()
 
 cats = win_server_2012_r2.get('stig')['findings']
+
 transcript = str(input('Put the output file from PowerShell script in the same folder as this script,\n'
-                       'Enter file name (with extension) to run the Best Practice Check:\n>'))
+                      'Enter file name (with extension) to run the Best Practice Check:\n>'))
 
 
 def get_value(gett: str):
@@ -101,16 +102,24 @@ def read_pulled_txt():
 
     only_configs = list()
     pulled_configs_dict = dict()
-    with open(transcript, 'r') as pulled:
-        for line in pulled.readlines():
-            only_configs.append(line.strip('\n').split(' : '))
-    for item in only_configs:
-        if item != ['']:
-            if len(item) > 1:
-                kee = item[0].lower()
-                wal = item[1]
-                config_dict = {kee: wal}
-                pulled_configs_dict.update(config_dict)
+
+    try:
+        with open(transcript, 'r', encoding='utf-16') as pulled:
+            for line in pulled.readlines():
+                only_configs.append(line.strip('\n').split(' : '))
+        for item in only_configs:
+            if item != ['']:
+                if len(item) > 1:
+                    kee = item[0].lower()
+                    wal = item[1]
+                    config_dict = {kee: wal}
+                    pulled_configs_dict.update(config_dict)
+
+        print(colored('FINDINGS:', 'cyan'))
+
+    except UnicodeError as unicode_error:
+        print(colored(f'Error: {unicode_error}', 'red'),
+              colored('\nTry changing encoding in "read_pulled_txt" function.', 'cyan'))
 
     # print(pulled_configs_dict)
     return pulled_configs_dict
@@ -170,27 +179,130 @@ def wet_check():
 
     # Special Values dictionary switch to human readable format
     miscellaneous = {
-        '537395200': 'Require NTLMv2 session security & Require 128-bit encryption',
-        '536870912': 'Require 128-bit encryption',
-        '0': 'No Minimum',
-        'default values after removing mrxsmb10 include the following, which are not a finding':
-            'Bowser, MRxSmb20, NSI or Bowser, MRxSmb30, NSI',
-        'blank': 'Blank',
-        'see below': 'Needs a Check',
-        'see message text below': '<=== Create a Legal Notice if Blank',
-        '65535': 'Not Configured'
+        'Enabled_Disabled':
+            {
+                'something': 'Default',
+                '1': 'Enabled',
+                '0': 'Disabled'
+            },
+        'Shle_remove':
+            {
+                'default values after removing mrxsmb10 include the following, which are not a finding':
+                    'Bowser, MRxSmb20, NSI or Bowser, MRxSmb30, NSI',
+                'blank': 'Blank',
+                'see below': 'Needs a Check',
+                'see message text below': '<=== Create a Legal Notice if Blank',
+                '65535': 'Not Configured',
+
+            },
+        'Ejection of removable NTFS media is not restricted to Administrators.':
+            {
+                '0': 'Administrators',
+            },
+        'The Smart Card removal option must be configured to Force Logoff or Lock Workstation.':
+            {
+                '0': 'No Action',
+                '1': 'Lock Workstation',
+                '2': 'Force Logoff',
+                '3': 'Disconnect if a Remote Desktop Services session'
+            },
+        'The service principal name (SPN) target name validation level must be turned off.':
+            {
+                '0': 'Off',
+                '1': 'Accept if provided by client',
+                '2': 'Required from client'
+            },
+        'The system must be configured to use the Classic security model.':
+            {
+                '0': 'Classic - local users authenticate as themselves',
+                '1': 'Guest only - local users authenticate as Guests'
+            },
+        'The use of DES encryption suites must not be allowed for Kerberos encryption.':
+            {
+                '0': 'Encryption type not allowed',
+                '2147483647': 'All Options Selected'
+            },
+        'The system will be configured to meet the minimum session security requirement for NTLM SSP based clients.':
+            {
+                '0': 'No Requirements',
+                '537395200': 'Require NTLMv2 session security & Require 128-bit encryption',
+                '536870912': 'Require 128-bit encryption'
+            },
+        'The system must be configured to meet the minimum session security requirement for NTLM SSP-based servers.':
+            {
+                '0': 'No Requirements',
+                '537395200': 'Require NTLMv2 session security & Require 128-bit encryption',
+                '536870912': 'Require 128-bit encryption'
+            },
+        'Users must be required to enter a password to access private keys stored on the computer.':
+            {
+                '0': 'User input is not required when new keys are stored and used',
+                '1': 'User is prompted when the key is first used',
+                '2': 'User must enter a password each time they use a key',
+            },
+        'User Account Control must, at minimum, prompt administrators for consent.':
+            {
+                '0': 'Elevate without prompting',
+                '1': 'Prompt for credentials on the secure desktop',
+                '2': 'Prompt for consent on the secure desktop',
+                '3': 'Prompt for credentials',
+                '4': 'Prompt for consent',
+                '5': 'Prompt for consent for non-Windows binaries'
+            },
+        'User Account Control must automatically deny standard user requests for elevation.':
+            {
+                '0': 'Prompt for credentials',
+                '1': 'Automatically deny elevation requests',
+                '2': 'Prompt for credentials on the secure desktop'
+            }
+
     }
 
     parsed_findings = dict()
 
-    for s_wet_keys, s_wet_values in sorted(findings_still_raw.items()):
-        if s_wet_values[1][0].startswith('0x'):
+    # for s_wet_keys, s_wet_values in sorted(findings_still_raw.items()):
+    #     if s_wet_values[1][0].startswith('0x'):
+    #
+    #         parsed_v_1 = {
+    #             s_wet_keys: [miscellaneous['Shle_remove'].get(s_wet_values[0]),
+    #                          miscellaneous['Shle_remove'].get(' '.join(s_wet_values[1][1:])), s_wet_values[2]]}
+    #         parsed_findings.update(parsed_v_1)
+    #         temporary = miscellaneous['Shle_remove'].get(' '.join(s_wet_values[1][1:]))
+    #         temporary_2 = miscellaneous.get(s_wet_values[0])
+    #
+    #         if temporary is None or temporary_2 is None:
+    #             parsed_v_1_5 = {s_wet_keys: [s_wet_values[0], ' '.join(s_wet_values[1][1:]), s_wet_values[2]]}
+    #             parsed_findings.update(parsed_v_1_5)
+    #
+    #             pass
+    #
+    #     elif not s_wet_values[1][0].startswith('0x'):
+    #         if len(s_wet_values[1][0]) == 1:
+    #             # print(s_wet_keys, s_wet_values[0], s_wet_values[1][0], s_wet_values[2])
+    #             parsed_v_2 = {s_wet_keys: [s_wet_values[0], s_wet_values[1][0], s_wet_values[2]]}
+    #             parsed_findings.update(parsed_v_2)
+    #             pass
+    #             if s_wet_values[0] == '65535':
+    #                 parsed_v_2_5 = {
+    #                     s_wet_keys: [miscellaneous['Enabled_Disabled'].get(s_wet_values[0]), s_wet_values[1][0],
+    #                                  s_wet_values[2]]}
+    #                 parsed_findings.update(parsed_v_2_5)
+    #                 pass
+    #         elif len(s_wet_values[1][0]) > 2:
+    #             print(s_wet_keys, s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2])
+    #             parsed_v_3 = {
+    #                 s_wet_keys: [s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2]]}
+    #             parsed_findings.update(parsed_v_3)
 
+    for s_wet_keys, s_wet_values in sorted(findings_still_raw.items()):
+        check = s_wet_values[1][0].startswith('0x')
+        if check:
+            # if
             parsed_v_1 = {
-                s_wet_keys: [miscellaneous.get(s_wet_values[0]), miscellaneous.get(' '.join(s_wet_values[1][1:])),
-                             s_wet_values[2]]}  # if None exception needed for the Fix
+                s_wet_keys: [miscellaneous['Shle_remove'].get(s_wet_values[0]),
+                             miscellaneous['Shle_remove'].get(' '.join(s_wet_values[1][1:])), s_wet_values[2]]}
             parsed_findings.update(parsed_v_1)
-            temporary = miscellaneous.get(' '.join(s_wet_values[1][1:]))
+            temporary = miscellaneous['Shle_remove'].get(' '.join(s_wet_values[1][1:]))
             temporary_2 = miscellaneous.get(s_wet_values[0])
 
             if temporary is None or temporary_2 is None:
@@ -199,7 +311,7 @@ def wet_check():
 
                 pass
 
-        elif not s_wet_values[1][0].startswith('0x'):
+        elif not check:
             if len(s_wet_values[1][0]) == 1:
                 # print(s_wet_keys, s_wet_values[0], s_wet_values[1][0], s_wet_values[2])
                 parsed_v_2 = {s_wet_keys: [s_wet_values[0], s_wet_values[1][0], s_wet_values[2]]}
@@ -207,7 +319,8 @@ def wet_check():
                 pass
                 if s_wet_values[0] == '65535':
                     parsed_v_2_5 = {
-                        s_wet_keys: [miscellaneous.get(s_wet_values[0]), s_wet_values[1][0], s_wet_values[2]]}
+                        s_wet_keys: [miscellaneous['Enabled_Disabled'].get(s_wet_values[0]), s_wet_values[1][0],
+                                     s_wet_values[2]]}
                     parsed_findings.update(parsed_v_2_5)
                     pass
             elif len(s_wet_values[1][0]) > 2:
@@ -223,7 +336,6 @@ def wet_check():
 def final():
     """Another function to clear the compliant settings and leave behind only non-compliant.
         this one has human (mine) logic in it"""
-    print(colored('FINDINGS:', 'red'))
     for juice, cups in wet_check().items():
         if cups[2] == 'LOW':
             print(juice, colored(cups[0], 'red'), colored(cups[1], 'green'), colored(cups[2], 'blue'))
