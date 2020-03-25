@@ -4,7 +4,7 @@
 
 2) Use Reg_Check.py to check the values.
 
-3) Select in the beginning of the script name of the "out_file.txt" from the PowerShell Script.
+3) Select in the beginning of the script name of the "out_file.txt" from the PowerShell Script and files encoding.
 
 *Keep th PowerShell Output from your PC/Server, STIG.py & Reg_Check.py in the same directory.
 
