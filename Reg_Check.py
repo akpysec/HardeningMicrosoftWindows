@@ -1,13 +1,17 @@
 from termcolor2 import colored
 from STIG import win_server_2012_r2
+from Misc import miscellaneous
 import colorama
-
 colorama.init()
 
 cats = win_server_2012_r2.get('stig')['findings']
 
-transcript = str(input('Put the output file from PowerShell script in the same folder as this script,\n'
-                      'Enter file name (with extension) to run the Best Practice Check:\n>'))
+transcript = 'file_name.txt'
+utf = 'utf-16'
+
+
+# transcript = str(input('Put the output file from PowerShell script in the same folder as this script,\n'
+#                        'Enter file name (with extension) to run the Best Practice Check:\n>'))
 
 
 def get_value(gett: str):
@@ -104,7 +108,7 @@ def read_pulled_txt():
     pulled_configs_dict = dict()
 
     try:
-        with open(transcript, 'r', encoding='utf-16') as pulled:
+        with open(transcript, 'r', encoding=utf) as pulled:
             for line in pulled.readlines():
                 only_configs.append(line.strip('\n').split(' : '))
         for item in only_configs:
@@ -178,156 +182,49 @@ def wet_check():
                 findings_still_raw.update(for_shle)
 
     # Special Values dictionary switch to human readable format
-    miscellaneous = {
-        'Enabled_Disabled':
-            {
-                'something': 'Default',
-                '1': 'Enabled',
-                '0': 'Disabled'
-            },
-        'Shle_remove':
-            {
-                'default values after removing mrxsmb10 include the following, which are not a finding':
-                    'Bowser, MRxSmb20, NSI or Bowser, MRxSmb30, NSI',
-                'blank': 'Blank',
-                'see below': 'Needs a Check',
-                'see message text below': '<=== Create a Legal Notice if Blank',
-                '65535': 'Not Configured',
-
-            },
-        'Ejection of removable NTFS media is not restricted to Administrators.':
-            {
-                '0': 'Administrators',
-            },
-        'The Smart Card removal option must be configured to Force Logoff or Lock Workstation.':
-            {
-                '0': 'No Action',
-                '1': 'Lock Workstation',
-                '2': 'Force Logoff',
-                '3': 'Disconnect if a Remote Desktop Services session'
-            },
-        'The service principal name (SPN) target name validation level must be turned off.':
-            {
-                '0': 'Off',
-                '1': 'Accept if provided by client',
-                '2': 'Required from client'
-            },
-        'The system must be configured to use the Classic security model.':
-            {
-                '0': 'Classic - local users authenticate as themselves',
-                '1': 'Guest only - local users authenticate as Guests'
-            },
-        'The use of DES encryption suites must not be allowed for Kerberos encryption.':
-            {
-                '0': 'Encryption type not allowed',
-                '2147483647': 'All Options Selected'
-            },
-        'The system will be configured to meet the minimum session security requirement for NTLM SSP based clients.':
-            {
-                '0': 'No Requirements',
-                '537395200': 'Require NTLMv2 session security & Require 128-bit encryption',
-                '536870912': 'Require 128-bit encryption'
-            },
-        'The system must be configured to meet the minimum session security requirement for NTLM SSP-based servers.':
-            {
-                '0': 'No Requirements',
-                '537395200': 'Require NTLMv2 session security & Require 128-bit encryption',
-                '536870912': 'Require 128-bit encryption'
-            },
-        'Users must be required to enter a password to access private keys stored on the computer.':
-            {
-                '0': 'User input is not required when new keys are stored and used',
-                '1': 'User is prompted when the key is first used',
-                '2': 'User must enter a password each time they use a key',
-            },
-        'User Account Control must, at minimum, prompt administrators for consent.':
-            {
-                '0': 'Elevate without prompting',
-                '1': 'Prompt for credentials on the secure desktop',
-                '2': 'Prompt for consent on the secure desktop',
-                '3': 'Prompt for credentials',
-                '4': 'Prompt for consent',
-                '5': 'Prompt for consent for non-Windows binaries'
-            },
-        'User Account Control must automatically deny standard user requests for elevation.':
-            {
-                '0': 'Prompt for credentials',
-                '1': 'Automatically deny elevation requests',
-                '2': 'Prompt for credentials on the secure desktop'
-            }
-
-    }
 
     parsed_findings = dict()
 
-    # for s_wet_keys, s_wet_values in sorted(findings_still_raw.items()):
-    #     if s_wet_values[1][0].startswith('0x'):
-    #
-    #         parsed_v_1 = {
-    #             s_wet_keys: [miscellaneous['Shle_remove'].get(s_wet_values[0]),
-    #                          miscellaneous['Shle_remove'].get(' '.join(s_wet_values[1][1:])), s_wet_values[2]]}
-    #         parsed_findings.update(parsed_v_1)
-    #         temporary = miscellaneous['Shle_remove'].get(' '.join(s_wet_values[1][1:]))
-    #         temporary_2 = miscellaneous.get(s_wet_values[0])
-    #
-    #         if temporary is None or temporary_2 is None:
-    #             parsed_v_1_5 = {s_wet_keys: [s_wet_values[0], ' '.join(s_wet_values[1][1:]), s_wet_values[2]]}
-    #             parsed_findings.update(parsed_v_1_5)
-    #
-    #             pass
-    #
-    #     elif not s_wet_values[1][0].startswith('0x'):
-    #         if len(s_wet_values[1][0]) == 1:
-    #             # print(s_wet_keys, s_wet_values[0], s_wet_values[1][0], s_wet_values[2])
-    #             parsed_v_2 = {s_wet_keys: [s_wet_values[0], s_wet_values[1][0], s_wet_values[2]]}
-    #             parsed_findings.update(parsed_v_2)
-    #             pass
-    #             if s_wet_values[0] == '65535':
-    #                 parsed_v_2_5 = {
-    #                     s_wet_keys: [miscellaneous['Enabled_Disabled'].get(s_wet_values[0]), s_wet_values[1][0],
-    #                                  s_wet_values[2]]}
-    #                 parsed_findings.update(parsed_v_2_5)
-    #                 pass
-    #         elif len(s_wet_values[1][0]) > 2:
-    #             print(s_wet_keys, s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2])
-    #             parsed_v_3 = {
-    #                 s_wet_keys: [s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2]]}
-    #             parsed_findings.update(parsed_v_3)
-
     for s_wet_keys, s_wet_values in sorted(findings_still_raw.items()):
-        check = s_wet_values[1][0].startswith('0x')
-        if check:
-            # if
-            parsed_v_1 = {
-                s_wet_keys: [miscellaneous['Shle_remove'].get(s_wet_values[0]),
-                             miscellaneous['Shle_remove'].get(' '.join(s_wet_values[1][1:])), s_wet_values[2]]}
-            parsed_findings.update(parsed_v_1)
-            temporary = miscellaneous['Shle_remove'].get(' '.join(s_wet_values[1][1:]))
-            temporary_2 = miscellaneous.get(s_wet_values[0])
+        if s_wet_keys not in miscellaneous.keys():
 
-            if temporary is None or temporary_2 is None:
-                parsed_v_1_5 = {s_wet_keys: [s_wet_values[0], ' '.join(s_wet_values[1][1:]), s_wet_values[2]]}
-                parsed_findings.update(parsed_v_1_5)
+            parsed_1 = {s_wet_keys: [miscellaneous.get("Enabled_Disabled")[s_wet_values[0]],
+                                     miscellaneous.get("Enabled_Disabled")[s_wet_values[1][0]], s_wet_values[2]]}
+            parsed_findings.update(parsed_1)
 
-                pass
-
-        elif not check:
-            if len(s_wet_values[1][0]) == 1:
-                # print(s_wet_keys, s_wet_values[0], s_wet_values[1][0], s_wet_values[2])
-                parsed_v_2 = {s_wet_keys: [s_wet_values[0], s_wet_values[1][0], s_wet_values[2]]}
-                parsed_findings.update(parsed_v_2)
-                pass
-                if s_wet_values[0] == '65535':
-                    parsed_v_2_5 = {
-                        s_wet_keys: [miscellaneous['Enabled_Disabled'].get(s_wet_values[0]), s_wet_values[1][0],
-                                     s_wet_values[2]]}
-                    parsed_findings.update(parsed_v_2_5)
-                    pass
-            elif len(s_wet_values[1][0]) > 2:
-                # print(s_wet_keys, s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2])
-                parsed_v_3 = {
-                    s_wet_keys: [s_wet_values[0], miscellaneous.get(' '.join(s_wet_values[1])), s_wet_values[2]]}
-                parsed_findings.update(parsed_v_3)
+        elif s_wet_keys in miscellaneous.keys():
+            # print(s_wet_keys, miscellaneous.get(s_wet_keys).get(s_wet_values[0]),
+            #       miscellaneous.get(s_wet_keys).get(s_wet_values[1][0]), s_wet_values[2])
+            if miscellaneous.get(s_wet_keys).get(s_wet_values[0]) and miscellaneous.get(s_wet_keys).get(
+                    s_wet_values[1][0]):
+                # print(s_wet_keys, miscellaneous.get(s_wet_keys).get(s_wet_values[0]),
+                #       miscellaneous.get(s_wet_keys).get(s_wet_values[1][0]), s_wet_values[2])
+                parsed_2 = {s_wet_keys: [miscellaneous.get(s_wet_keys).get(s_wet_values[0]),
+                                         miscellaneous.get(s_wet_keys).get(s_wet_values[1][0]), s_wet_values[2]]}
+                parsed_findings.update(parsed_2)
+            elif not miscellaneous.get(s_wet_keys).get(s_wet_values[0]) or miscellaneous.get(s_wet_keys).get(
+                    s_wet_values[1][0]):
+                if len(s_wet_values[1][0:]) > 1 and len(s_wet_values[1][0:]) == 3:  # Parsing elements of 3
+                    # print(s_wet_keys, s_wet_values[0], ' '.join(s_wet_values[1][0:]), s_wet_values[2])
+                    parsed_3 = {s_wet_keys: [s_wet_values[0], ' '.join(s_wet_values[1][0:]), s_wet_values[2]]}
+                    parsed_findings.update(parsed_3)
+                elif len(s_wet_values[1][0:]) > 1:
+                    # if int(s_wet_values[1][0], 16):
+                    #     print(s_wet_values[1][0])
+                    if s_wet_values[1][0] == 'see':
+                        # print(s_wet_keys, s_wet_values[0], miscellaneous.get(s_wet_keys).get(s_wet_values[1][0]),
+                        #       s_wet_values[2])
+                        parsed_4 = {s_wet_keys: [s_wet_values[0], miscellaneous.get(s_wet_keys).get(s_wet_values[1][0]),
+                                                 s_wet_values[2]]}
+                        parsed_findings.update(parsed_4)
+                    elif len(s_wet_values[1][0:]) > 5:      # SMB Client Parse
+                        # print(s_wet_keys, s_wet_values[0], miscellaneous.get(s_wet_keys).get(' '.join(s_wet_values[1][0:])), s_wet_values[2])
+                        parsed_5 = {s_wet_keys: [s_wet_values[0], miscellaneous.get(s_wet_keys).get(' '.join(s_wet_values[1][0:])), s_wet_values[2]]}
+                        parsed_findings.update(parsed_5)
+                    elif s_wet_values[1][0]:      # Last parse, for now
+                        # print(s_wet_keys, s_wet_values[0], s_wet_values[1][1:], s_wet_values[2])
+                        parsed_6 = {s_wet_keys: [s_wet_values[0], ' '.join(s_wet_values[1][1:]), s_wet_values[2]]}
+                        parsed_findings.update(parsed_6)
 
     # print(parsed_findings)
     return parsed_findings
@@ -350,5 +247,5 @@ def final():
 # wet_check()
 final()
 
-stop = input('\nPress "Enter" to quit...')
-stop
+# stop = input('\nPress "Enter" to quit...')
+# stop
