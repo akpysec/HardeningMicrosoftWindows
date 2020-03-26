@@ -1,11 +1,11 @@
 from termcolor2 import colored
-from STIG import win_server_2012_r2
+from STIG import win_server_2008_r2, win_server_2012_r2
 from Misc import miscellaneous
 import colorama
 colorama.init()
 
+# cats = win_server_2008_r2.get('stig')['findings']
 cats = win_server_2012_r2.get('stig')['findings']
-
 transcript = 'file_name.txt'
 utf = 'utf-16'
 
@@ -66,7 +66,8 @@ def get_stig_dictionary():
             for item in raw_list:
                 for i in item.split('\n'):
                     if i.__contains__('Value Name'):
-                        values = i.split(': ')[1].strip(' ').lower()
+                        # print(i)
+                        values = i.split(':')[1].strip(' ').lower()
                         in_dict = {vs.get('title'): values}
                         computer_settings.update(in_dict)
                         # print({v.get('title'): values})
@@ -156,30 +157,29 @@ def wet_check():
     findings_still_raw = dict()
 
     for wet_key, wet_value in dry_check().items():
+        if wet_value[1] is None:
+            print(wet_value)
+        elif wet_value is not None:
+            best_practice = wet_value[1].replace('(', '').replace(')', '').split(' ')
+            setting_in_place = wet_value[0]
 
-        best_practice = wet_value[1]
-        setting_in_place = wet_value[0]
+            if setting_in_place in best_practice:
+                # print(wet_key, colored(setting_in_place, 'blue'), colored(temp_list[temp_list.index(setting_in_place)],
+                #                                                           'green'))
+                pass
 
-        # Stripping the "()" in an interesting way
-        table = str.maketrans(dict.fromkeys("()"))
-        parentheses_less = best_practice.translate(table)
+            # Shows only not matched
+            elif setting_in_place not in best_practice:
+                setting_in_place = setting_in_place.strip('{}')
 
-        temp_list = parentheses_less.split(' ')
-        if setting_in_place in temp_list:
-            # print(wet_key, colored(setting_in_place, 'blue'), colored(temp_list[temp_list.index(setting_in_place)],
-            #                                                           'green'))
-            pass
+                # Runs another check after one more stripping
+                if setting_in_place not in best_practice:
+                    severities = get_severity(gett=wet_key)
 
-        # Shows only not matched
-        elif setting_in_place not in temp_list:
-            setting_in_place = setting_in_place.strip('{}')
+                    for_shle = {wet_key: [setting_in_place, best_practice, severities]}
+                    findings_still_raw.update(for_shle)
 
-            # Runs another check after one more stripping
-            if setting_in_place not in temp_list:
-                severities = get_severity(gett=wet_key)
-
-                for_shle = {wet_key: [setting_in_place, temp_list, severities]}
-                findings_still_raw.update(for_shle)
+    # print(findings_still_raw)
 
     # Special Values dictionary switch to human readable format
 
@@ -235,11 +235,11 @@ def final():
         this one has human (mine) logic in it"""
     for juice, cups in wet_check().items():
         if cups[2] == 'LOW':
-            print(juice, colored(cups[0], 'red'), colored(cups[1], 'green'), colored(cups[2], 'blue'))
+            print(colored(cups[2], 'blue'), juice, colored(cups[0], 'red'), colored(cups[1], 'green'))
         elif cups[2] == 'MEDIUM':
-            print(juice, colored(cups[0], 'red'), colored(cups[1], 'green'), colored(cups[2], 'yellow'))
+            print(colored(cups[2], 'yellow'), juice, colored(cups[0], 'red'), colored(cups[1], 'green'))
         elif cups[2] == 'HIGH':
-            print(juice, colored(cups[0], 'red'), colored(cups[1], 'green'), colored(cups[2], 'red'))
+            print(colored(cups[2], 'red'), juice, colored(cups[0], 'red'), colored(cups[1], 'green'))
 
     return
 
