@@ -6,7 +6,7 @@ colorama.init()
 
 # cats = win_server_2008_r2.get('stig')['findings']
 cats = win_server_2012_r2.get('stig')['findings']
-transcript = 'file_name.txt'
+transcript = 'transcript_file_name.txt'
 utf = 'utf-16'
 
 
@@ -218,8 +218,11 @@ def wet_check():
                                                  s_wet_values[2]]}
                         parsed_findings.update(parsed_4)
                     elif len(s_wet_values[1][0:]) > 5:      # SMB Client Parse
-                        # print(s_wet_keys, s_wet_values[0], miscellaneous.get(s_wet_keys).get(' '.join(s_wet_values[1][0:])), s_wet_values[2])
-                        parsed_5 = {s_wet_keys: [s_wet_values[0], miscellaneous.get(s_wet_keys).get(' '.join(s_wet_values[1][0:])), s_wet_values[2]]}
+                        # print(s_wet_keys, s_wet_values[0], miscellaneous.get(s_wet_keys).get(' '.join(s_wet_values[
+                        # 1][0:])), s_wet_values[2])
+                        parsed_5 = {s_wet_keys: [s_wet_values[0],
+                                                 miscellaneous.get(s_wet_keys).get(' '.join(s_wet_values[1][0:])),
+                                                 s_wet_values[2]]}
                         parsed_findings.update(parsed_5)
                     elif s_wet_values[1][0]:      # Last parse, for now
                         # print(s_wet_keys, s_wet_values[0], s_wet_values[1][1:], s_wet_values[2])
@@ -233,13 +236,26 @@ def wet_check():
 def final():
     """Another function to clear the compliant settings and leave behind only non-compliant.
         this one has human (mine) logic in it"""
-    for juice, cups in wet_check().items():
-        if cups[2] == 'LOW':
-            print(colored(cups[2], 'blue'), juice, colored(cups[0], 'red'), colored(cups[1], 'green'))
-        elif cups[2] == 'MEDIUM':
-            print(colored(cups[2], 'yellow'), juice, colored(cups[0], 'red'), colored(cups[1], 'green'))
-        elif cups[2] == 'HIGH':
-            print(colored(cups[2], 'red'), juice, colored(cups[0], 'red'), colored(cups[1], 'green'))
+    sorted_dict = list()
+
+    for juice, cups in sorted(wet_check().items()):
+        sort_1 = cups[2], juice, cups[0], cups[1]
+        sorted_dict.append(sort_1)
+
+    sorting_dict = {
+        1: 'HIGH',
+        2: 'MEDIUM',
+        3: 'LOW'
+    }
+
+    for level in sorted(sorted_dict):
+        # print(level)
+        if level[0] == sorting_dict.get(3):
+            print(colored(level[0], 'blue'), level[1], colored(level[2], 'red'), colored(level[3], 'green'))
+        elif level[0] == sorting_dict.get(2):
+            print(colored(level[0], 'yellow'), level[1], colored(level[2], 'red'), colored(level[3], 'green'))
+        elif level[0] == sorting_dict.get(1):
+            print(colored(level[0], 'red'), level[1], colored(level[2], 'red'), colored(level[3], 'green'))
 
     return
 
