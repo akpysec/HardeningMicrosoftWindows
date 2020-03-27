@@ -3,7 +3,10 @@ miscellaneous = {
         {
             '1': 'Enabled',
             '0': 'Disabled',
-            ' ': 'Blank'
+        },
+    'Trusted app installation must be enabled to allow for signed enterprise line of business apps.':
+        {
+            '': ''      # Needs fine tuning
         },
     'The Windows dialog box title for the legal banner must be configured.':
         {None: 'Blank',
