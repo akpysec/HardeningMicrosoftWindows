@@ -6,8 +6,8 @@ colorama.init()
 
 # cats = win_server_2008_r2.get('stig')['findings']
 cats = win_server_2012_r2.get('stig')['findings']
-transcript = 'transcript_file_name.txt'
-utf = 'utf-16'
+transcript = 'home.txt'
+utf = 'utf-8'
 
 
 # transcript = str(input('Put the output file from PowerShell script in the same folder as this script,\n'
