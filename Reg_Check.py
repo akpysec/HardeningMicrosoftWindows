@@ -6,8 +6,8 @@ colorama.init()
 
 # cats = win_server_2008_r2.get('stig')['findings']
 cats = win_server_2012_r2.get('stig')['findings']
-transcript = 'home.txt'
-utf = 'utf-8'
+transcript = ['transcript_from_powershell.txt']     #, 'transcript_from_powershell.txt', 'transcript_from_powershell.txt']
+utf = 'utf-16'
 
 
 # transcript = str(input('Put the output file from PowerShell script in the same folder as this script,\n'
@@ -109,18 +109,19 @@ def read_pulled_txt():
     pulled_configs_dict = dict()
 
     try:
-        with open(transcript, 'r', encoding=utf) as pulled:
-            for line in pulled.readlines():
-                only_configs.append(line.strip('\n').split(' : '))
-        for item in only_configs:
-            if item != ['']:
-                if len(item) > 1:
-                    kee = item[0].lower()
-                    wal = item[1]
-                    config_dict = {kee: wal}
-                    pulled_configs_dict.update(config_dict)
+        for file in transcript:
+            with open(file, 'r', encoding=utf) as pulled:
+                for line in pulled.readlines():
+                    only_configs.append(line.strip('\n').split(' : '))
+            for item in only_configs:
+                if item != ['']:
+                    if len(item) > 1:
+                        kee = item[0].lower()
+                        wal = item[1]
+                        config_dict = {kee: wal}
+                        pulled_configs_dict.update(config_dict)
 
-        print(colored('FINDINGS:', 'cyan'))
+            print(colored(f'FINDINGS on {file.strip(".txt")}:', 'cyan'))
 
     except UnicodeError as unicode_error:
         print(colored(f'Error: {unicode_error}', 'red'),
