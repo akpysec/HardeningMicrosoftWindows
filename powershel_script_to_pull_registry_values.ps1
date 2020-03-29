@@ -220,13 +220,7 @@ Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\DriverSearchin
 
 Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\DriverSearching\" | fl SearchOrderConfig
 
-Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\EventLog\Application\" | fl MaxSize
-
 Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\EventLog\Security\" | fl MaxSize
-
-Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\EventLog\Setup\" | fl MaxSize
-
-Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\EventLog\System\" | fl MaxSize
 
 Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Explorer\" | fl NoAutoplayfornonVolume
 
