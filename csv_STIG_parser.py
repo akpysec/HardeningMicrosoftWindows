@@ -66,10 +66,17 @@ REG_NAME = list()
 REG_VALUE = list()
 
 for k, v in VAL_DICT.items():
-    # Check for missing data UN-DONE
-    if len(v) > 4:
-        # print(v)
-        pass
+    # CHECK FOR MISSING DATA - UN-DONE
+    # Listing first elements from a sub-lists
+    first_element_sub_list = [item[0] for item in v]
+    # Checking first elements from a sub-list against 'key_names' list
+    check = all(item in first_element_sub_list for item in key_names)
+    # Extracting missing value
+    if check is False:
+        for element in key_names:
+            if element not in first_element_sub_list:
+                # v[-1][0].append([element, None])
+                print(element)
     # Checking list length for missing [Value, ''] in a 'v' list
     if v[-1][0] != key_names[3]:
         v.append(['Value', None])
@@ -91,7 +98,7 @@ df = df.assign(**{STR_REG_HIVE: REG_HIVE[0:193],
                   STR_VALUE: REG_VALUE[0:193],
                   STR_VALUE_NAME: REG_NAME[0:193]})
 
-print(df)
+# print(df)
 
 
 # Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging\" | fl EnableScriptBlockLogging
