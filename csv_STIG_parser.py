@@ -11,6 +11,7 @@ def csv_parser(file_name: str):
     STR_REG_PATH = 'Registry Path'
     STR_VALUE_NAME = 'Value Name'
     STR_VALUE = 'Value'
+    MISSING_ATTRIBUTE = 'Attribute has no value'
 
     # Reading STIG.csv file
     df = pd.read_csv(file_name)
@@ -90,15 +91,24 @@ def csv_parser(file_name: str):
 
         # Finding missing value & replacing it with a massage
         if check is False:
+            print(v)
             for element in key_names:
                 if element not in FIRST_ELEMENT_SUB_LIST:
-                    v.append(element), v.append('Attribute has no value')
+                    if element == key_names[0]:
+                        v.insert(0, element), v.insert(1, MISSING_ATTRIBUTE)
+                    elif element == key_names[1]:
+                        v.insert(2, element), v.insert(3, MISSING_ATTRIBUTE)
+                    elif element == key_names[2]:
+                        v.insert(5, element), v.insert(6, MISSING_ATTRIBUTE)
+                    elif element == key_names[3]:
+                        v.insert(7, element), v.insert(8, MISSING_ATTRIBUTE)
 
             # Join multiple occurrences to one object in from 'Value Name' object in list until 'Value' object in a list
             v.insert(-2, ', '.join(
                 v[find_index(in_list=v, key=key_names[2])[0] + 1: find_index(in_list=v, key=key_names[3])[0]]))
             del v[find_index(in_list=v, key=key_names[2])[0] + 1: -3]
 
+            # Appending to corresponding lists
             if v[0] == key_names[0]:
                 REG_HIVE.append(v[1])
             if v[2] == key_names[1]:
@@ -150,14 +160,15 @@ def csv_parser(file_name: str):
 
     # FOR TESTING PURPOSES
     # print(len(REG_HIVE), len(REG_PATH), len(REG_NAME), len(REG_VALUE))
+    # print(len(df.index))
 
     # Creating 4 columns and adding corresponding data to each column
-    df = df.assign(**{STR_REG_HIVE: REG_HIVE[:len(df.index)],
-                      STR_REG_PATH: REG_PATH[:len(df.index)],
-                      STR_VALUE: REG_VALUE[:len(df.index)],
-                      STR_VALUE_NAME: REG_NAME[:len(df.index)]})
+    df = df.assign(**{STR_REG_HIVE: REG_HIVE[0:],
+                      STR_REG_PATH: REG_PATH[0:],
+                      STR_VALUE: REG_VALUE[0:],
+                      STR_VALUE_NAME: REG_NAME[0:]})
 
-    # print(df)
+    print(df)
     # df.to_csv('file_name')
     return df
 
