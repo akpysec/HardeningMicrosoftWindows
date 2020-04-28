@@ -168,7 +168,7 @@ def csv_parser(file_name: str):
                       STR_VALUE: REG_VALUE[0:],
                       STR_VALUE_NAME: REG_NAME[0:]})
 
-    print(df)
+    # print(df)
     # df.to_csv('file_name')
     return df
 
