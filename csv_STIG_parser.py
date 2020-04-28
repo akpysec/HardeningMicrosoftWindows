@@ -1,3 +1,4 @@
+# Version 1.00
 # To get .csv hardening guides go to "https://www.stigviewer.com/stigs"
 
 import collections
@@ -6,6 +7,8 @@ import itertools
 
 
 def csv_parser(file_name: str):
+    """Function takes a FileName in .csv format as a parameter & parses it to a DataFrame for further use"""
+
     # Re-usable variables
     STR_REG_HIVE = 'Registry Hive'
     STR_REG_PATH = 'Registry Path'
@@ -168,9 +171,23 @@ def csv_parser(file_name: str):
                       STR_VALUE: REG_VALUE[0:],
                       STR_VALUE_NAME: REG_NAME[0:]})
 
-    # print(df)
+    print(df)
     # df.to_csv('file_name')
     return df
 
 
-csv_parser(file_name='WRITE_FILENAME_HERE!')
+# Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging\" | fl EnableScriptBlockLogging
+def create_ps_script(data_frame: pd.DataFrame):
+    """Function takes DataFrame as a parameter & creates a PowerShell script for auditing"""
+    return
+
+
+def ps_script_output_check(data_frame: pd.DataFrame):
+    """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken 
+    parameter"""
+    return
+
+
+def local_host_check(data_frame: pd.DataFrame):
+    """Function takes DataFrame as a parameter & runs auditing check locally against taken parameter"""
+    return
