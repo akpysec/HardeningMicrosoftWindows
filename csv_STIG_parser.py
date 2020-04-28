@@ -1,3 +1,5 @@
+# To get .csv hardening guides go to "https://www.stigviewer.com/stigs"
+
 import collections
 import pandas as pd
 import itertools
@@ -155,11 +157,9 @@ def csv_parser(file_name: str):
                       STR_VALUE: REG_VALUE[:len(df.index)],
                       STR_VALUE_NAME: REG_NAME[:len(df.index)]})
 
-    print(df)
+    # print(df)
     # df.to_csv('file_name')
     return df
 
 
-csv_parser(file_name='win2012r2.csv')
-
-# Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging\" | fl EnableScriptBlockLogging
+csv_parser(file_name='WRITE_FILENAME_HERE!')
