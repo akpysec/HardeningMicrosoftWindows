@@ -5,6 +5,18 @@ import collections
 import pandas as pd
 import itertools
 
+# Re-usable strings
+from ordered_set import OrderedSet
+
+KEY_NAMES = [
+    'Registry Hive',
+    'Registry Path',
+    'Value Name',
+    'Value',
+    'Registry Paths',
+    'Attribute has no value'
+]
+
 
 # Re-usable function to locate indexes in a list
 def find_index(in_list: list, key: str):
@@ -12,25 +24,31 @@ def find_index(in_list: list, key: str):
     return value_names_positions
 
 
-# Re-usable function to locate duplicate objects in a list
-def check_duplicates(list_of: list):
-    """ Check if given list contains any duplicates """
-    for elem in list_of:
-        if list_of.count(elem) > 1:
+def find_duplicates(in_list: list):
+    for elem in in_list:
+        if in_list.count(elem) > 1:
             return True
     return False
 
 
+def get_indexes(in_list, element):
+    indexPosList = []
+    indexPos = 0
+    while True:
+        try:
+            # Search for item in list from indexPos to the end of list
+            indexPos = in_list.index(element, indexPos)
+            # Add the index position in list
+            indexPosList.append(indexPos)
+            indexPos += 1
+        except ValueError as e:
+            break
+
+    return indexPosList
+
+
 def csv_parser(file_name: str):
     """Function takes a FileName in .csv format as a parameter & parses it to a DataFrame for further use"""
-
-    # Re-usable variables
-    STR_REG_HIVE = 'Registry Hive'
-    STR_REG_PATH = 'Registry Path'
-    STR_REG_PATHS = 'Registry Paths'
-    STR_VALUE_NAME = 'Value Name'
-    STR_VALUE = 'Value'
-    MISSING_ATTRIBUTE = 'Attribute has no value'
 
     # Reading STIG.csv file
     main_frame = pd.read_csv(file_name)
@@ -48,13 +66,12 @@ def csv_parser(file_name: str):
     main_frame = main_frame.sort_values('severity')
 
     # Filtering out only the hardening values that have registry keys & values
-    main_frame = main_frame[main_frame['checktext'].str.contains(STR_REG_HIVE)
-                            & main_frame['checktext'].str.contains(STR_REG_PATH)
-                            & main_frame['checktext'].str.contains(STR_VALUE_NAME)]
+    main_frame = main_frame[main_frame['checktext'].str.contains(KEY_NAMES[0])
+                            & main_frame['checktext'].str.contains(KEY_NAMES[1])
+                            & main_frame['checktext'].str.contains(KEY_NAMES[2])]
 
-    secondary_frame = main_frame['checktext'].str.contains(STR_REG_PATHS)
-
-    merged_Frames = pd.concat([main_frame, secondary_frame])
+    # secondary_frame = main_frame['checktext'].str.contains(STR_REG_PATHS)
+    # merged_Frames = pd.concat([main_frame, secondary_frame])
 
     # Dropping un-necessary columns
     main_frame.drop(['iacontrols', 'ruleID', 'checkid', 'fixid'], axis=1, inplace=True)
@@ -64,12 +81,10 @@ def csv_parser(file_name: str):
     # Setting view to view all columns
     pd.set_option('max_columns', None)
 
-    # CHECK IF STRINGS ARE IN - frame_1['checktext']
-    # The Strings:
-    key_names = [STR_REG_HIVE, STR_REG_PATH, STR_VALUE_NAME, STR_VALUE]
+    # CHECK IF STRINGS ARE IN - main_frame['checktext']
 
     # The Check in main frame:  CHECK FOR SECONDARY FRAME IS NOT DONE YET (there's a series with 4 registry paths)
-    filteredData = list(filter(lambda x: any(True for c in key_names if c in x), main_frame['checktext']))
+    filteredData = list(filter(lambda x: any(True for c in KEY_NAMES if c in x), main_frame['checktext']))
 
     # Filtering key names values ONLY to a list
     VALUES = list()
@@ -85,7 +100,7 @@ def csv_parser(file_name: str):
                 filteredNone = list(filter(None, e.split(':')))
                 if len(filteredNone) == 2:
                     filteredNone = [filteredNone[0], filteredNone[1].lstrip(' ')]
-                    if filteredNone[0] in key_names:
+                    if filteredNone[0] in KEY_NAMES:
                         VALUES.append(filteredNone)
                         VAL_DICT[COUNT].append(filteredNone)
 
@@ -97,122 +112,88 @@ def csv_parser(file_name: str):
 
     for k, v in VAL_DICT.items():
         # CHECK FOR MISSING DATA & MULTIPLE OCCURRENCES
-
         # Un-packing lists inside 'v' list
         v = list(itertools.chain(*v))
 
-        # Listing elements from a list 'v'
-        FIRST_ELEMENT_SUB_LIST = [item for item in v]
+        # Dealing with missing data of key-values
+        counting = [v.count(KEY_NAMES[0]), v.count(KEY_NAMES[1]), v.count(KEY_NAMES[2]), v.count(KEY_NAMES[3])]
+        RIGHT_AMOUNT = list([1, 1, 1, 1])
 
-        # Checking first elements from a 'v' list against 'key_names' list
-        check = all(item in FIRST_ELEMENT_SUB_LIST for item in key_names)
+        if len(v) < 8:
+            missing = [mis for mis in KEY_NAMES[0:4] if mis not in v]
+            v.append(missing[0]), v.append(KEY_NAMES[-1])
 
-        # Finding missing value & replacing it with a massage
-        if check is False:
-            for element in key_names:
-                if element not in FIRST_ELEMENT_SUB_LIST:
-                    if element == key_names[0]:
-                        v.insert(0, element), v.insert(1, MISSING_ATTRIBUTE)
-                    elif element == key_names[1]:
-                        v.insert(2, element), v.insert(3, MISSING_ATTRIBUTE)
-                    elif element == key_names[2]:
-                        v.insert(5, element), v.insert(6, MISSING_ATTRIBUTE)
-                    elif element == key_names[3]:
-                        v.insert(7, element), v.insert(8, MISSING_ATTRIBUTE)
+        if len(v) > 8:
+            TEST = collections.defaultdict(set)
+            # print('*' * 50)
+            # print(v)
 
-            # Join multiple occurrences to one object in from 'Value Name' object in list until 'Value' object in a list
-            v.insert(-2, ', '.join(
-                v[find_index(in_list=v, key=key_names[2])[0] + 1: find_index(in_list=v, key=key_names[3])[0]]))
-            del v[find_index(in_list=v, key=key_names[2])[0] + 1: -3]
+            counting = [c for c in KEY_NAMES if v.count(c) > 1]
+            for item in KEY_NAMES:
+                keys_index = get_indexes(v, item)
+                for r in keys_index:
+                    TEST[item].add(v[r + 1])
 
-            # Appending to corresponding lists
-            if v[0] == key_names[0]:
+            TEST_LIST = list()
+            for key, value in TEST.items():
+                TEST_LIST.append([key, ', '.join(value)])
+            TEST_LIST = list(itertools.chain(*TEST_LIST))
+
+            v = TEST_LIST
+
+        if counting == RIGHT_AMOUNT:
+            REG_HIVE.append(v[1])
+            REG_PATH.append(v[3])
+            REG_NAME.append(v[5])
+            REG_VALUE.append(v[7])
+            # print(v)
+
+        if counting != RIGHT_AMOUNT:
+            if len(v) < 8:
                 REG_HIVE.append(v[1])
-            if v[2] == key_names[1]:
                 REG_PATH.append(v[3])
-            if v[4] == key_names[2]:
                 REG_NAME.append(v[5])
-            if v[-2] == key_names[3]:
-                REG_VALUE.append(v[-1])
-
-        # Dealing with multiple occurrences of key-values
-        # Moving multiple occurrences to dictionary for ease of handling
-        if check is True:
-            if check_duplicates(v) is True:
-                print(check)
-                # Creating dictionary without duplicates
-                TEST = collections.defaultdict(set)
-                for key in key_names:
-                    if v.count(key) > 1 or v.count(key) > 1 or v.count(key) > 1:
-                        indices = [i for i, x in enumerate(v) if x == key]
-                        for i in indices:
-                            TEST[key].add(v[i + 1])
-                # Create a list from dictionary (without duplicates) + turn sets to lists
-                s = [[k, list(v)] for k, v in TEST.items()]
-                # Dropping outside list brackets
-                if s:
-                    v = list(itertools.chain(*s))
-                    if v[0] != key_names[0]:
-                        v.insert(0, MISSING_ATTRIBUTE), v.insert(1, MISSING_ATTRIBUTE)
-                    if v[2] != key_names[1]:
-                        v.insert(2, MISSING_ATTRIBUTE), v.insert(3, MISSING_ATTRIBUTE)
-                    if v[4] != key_names[2]:
-                        v.insert(4, MISSING_ATTRIBUTE), v.insert(5, MISSING_ATTRIBUTE)
-                    if v[-2] != key_names[3]:
-                        v.insert(-2, MISSING_ATTRIBUTE), v.insert(-1, MISSING_ATTRIBUTE)
-
-                # Appending to corresponding lists
-                if v[0] == key_names[0]:
-                    REG_HIVE.append(v[1][0])
-                if v[2] == key_names[1]:
-                    REG_PATH.append(v[3][0])
-                if v[4] == key_names[2]:
-                    REG_NAME.append(v[5][0])
-                if v[-2] == key_names[3]:
-                    REG_VALUE.append(v[-1][0])
-
-            if check_duplicates(v) is False:
-                print(check)
-                # Appending to corresponding lists
-                if v[0] == key_names[0]:
-                    REG_HIVE.append(v[1])
-                if v[2] == key_names[1]:
-                    REG_PATH.append(v[3])
-                if v[4] == key_names[2]:
-                    REG_NAME.append(v[5])
-                if v[-2] == key_names[3]:
-                    REG_VALUE.append(v[-1])
+                REG_VALUE.append(v[7])
+                # print(v)
+            if len(v) == 8:
+                REG_HIVE.append(v[1])
+                REG_PATH.append(v[3])
+                REG_NAME.append(v[5])
+                REG_VALUE.append(v[7])
+                print(v)
 
     # FOR TESTING PURPOSES
     print(len(REG_HIVE), len(REG_PATH), len(REG_NAME), len(REG_VALUE))
+    # print(REG_HIVE, REG_PATH, REG_NAME, REG_VALUE)
     print(len(main_frame.index))
 
     # Creating 4 columns and adding corresponding data to each column
-    # main_frame = main_frame.assign(**{STR_REG_HIVE: REG_HIVE[0:],
-    #                                   STR_REG_PATH: REG_PATH[0:],
-    #                                   STR_VALUE: REG_VALUE[0:],
-    #                                   STR_VALUE_NAME: REG_NAME[0:]})
+    main_frame = main_frame.assign(**{KEY_NAMES[0]: REG_HIVE[0:],
+                                      KEY_NAMES[1]: REG_PATH[0:],
+                                      KEY_NAMES[2]: REG_NAME[0:],
+                                      KEY_NAMES[3]: REG_VALUE[0:]
+                                      })
 
-    # print(frame_1)
+    print(main_frame)
     # frame_1.to_csv('file_name')
+
     return main_frame
 
 
-# Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging\" | fl EnableScriptBlockLogging
-def create_ps_script(data_frame: pd.DataFrame):
-    """Function takes DataFrame as a parameter & creates a PowerShell script for auditing"""
-    return
-
-
-def ps_script_output_check(data_frame: pd.DataFrame):
-    """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken
-    parameter"""
-    return
-
-
-def local_host_check(data_frame: pd.DataFrame):
-    """Function takes DataFrame as a parameter & runs auditing check locally against taken parameter"""
-    return
-
-
 csv_parser(file_name='hardening_guides\\Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv')
+
+# Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging\" | fl EnableScriptBlockLogging
+# def create_ps_script(data_frame: pd.DataFrame):
+#     """Function takes DataFrame as a parameter & creates a PowerShell script for auditing"""
+#     return
+#
+#
+# def ps_script_output_check(data_frame: pd.DataFrame):
+#     """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken
+#     parameter"""
+#     return
+#
+#
+# def local_host_check(data_frame: pd.DataFrame):
+#     """Function takes DataFrame as a parameter & runs auditing check locally against taken parameter"""
+#     return
