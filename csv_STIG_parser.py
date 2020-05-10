@@ -39,11 +39,11 @@ def get_indexes(in_list, element):
     return indexPosList
 
 
-def csv_parser(file_name: str):
+def csv_parser(STIG_file_name: str):
     """Function takes a FileName in .csv format as a parameter & parses it to a DataFrame for further use"""
 
     # Reading STIG.csv file
-    main_frame = pd.read_csv(file_name)
+    main_frame = pd.read_csv(STIG_file_name)
 
     # Setting id Column as index
     main_frame.index = main_frame['id']
@@ -174,9 +174,9 @@ def csv_parser(file_name: str):
     return main_frame
 
 
-def create_ps_script(data_frame: pd.DataFrame):
+def create_ps_script(data_frame: pd.DataFrame, file_name: str):
     """Function takes DataFrame as a parameter & creates a PowerShell script for auditing"""
-    with open('transcript.ps1', 'a') as transcript:
+    with open(f'{file_name}.ps1', 'a') as transcript:
         for path, name_value in zip(data_frame[KEY_NAMES[1]], data_frame[KEY_NAMES[2]]):
 
             # UN-PACKING lists
@@ -192,7 +192,7 @@ def create_ps_script(data_frame: pd.DataFrame):
                         transcript.writelines(
                             f'Get-ItemProperty -Path "HKLM:\\{path[0]}" | Format-List "{each_value}"' + '\n')
 
-            # MISSING VALUES - FROM DataFrame - 'Registry Paths' ^
+            # MISSING VALUES - FROM DataFrame - 'Registry Paths' - Needs to be handled in 'csv_parser' function
             if path == '':
                 # print('path')
                 pass
@@ -207,15 +207,18 @@ def create_ps_script(data_frame: pd.DataFrame):
 
 def create_parsed_csv(data_frame: pd.DataFrame, file_name: str):
     """Writes to a .csv file with all exported values; Registry Hive, Registry Path, Value Name, Value"""
-    data_frame.to_csv(file_name)
+    data_frame.to_csv(f"{file_name}.csv")
     return
 
 
 create_ps_script(
     data_frame=csv_parser(
-        file_name='hardening_guides\\'
-                  'Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv')
-)
+        STIG_file_name='hardening_guides\\'
+                       'Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'),
+    file_name='transcript')
+
+# create_parsed_csv(data_frame=csv_parser('hardening_guides\\'
+#                   'Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'), file_name='TEST')
 
 # def ps_script_output_check(data_frame: pd.DataFrame):
 #     """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken
