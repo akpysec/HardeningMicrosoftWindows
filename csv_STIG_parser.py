@@ -119,10 +119,12 @@ def csv_parser(file_name: str):
         counting = [v.count(KEY_NAMES[0]), v.count(KEY_NAMES[1]), v.count(KEY_NAMES[2]), v.count(KEY_NAMES[3])]
         RIGHT_AMOUNT = list([1, 1, 1, 1])
 
+        # Appending to lists that have a frame less than 8 objects (Avoiding trouble with PANDAS)
         if len(v) < 8:
             missing = [mis for mis in KEY_NAMES[0:4] if mis not in v]
             v.append(missing[0]), v.append(KEY_NAMES[-1])
 
+        # Frames(lists) that have multiple values... was a brain-f*** for me
         if len(v) > 8:
             combining_values = collections.defaultdict(set)
 
@@ -139,6 +141,7 @@ def csv_parser(file_name: str):
 
             v = combined_values_list
 
+        # Appending to DataFrame
         if counting == RIGHT_AMOUNT:
             REG_HIVE.append(v[1])
             REG_PATH.append(v[3])
@@ -146,6 +149,7 @@ def csv_parser(file_name: str):
             REG_VALUE.append(v[7])
             # print(v)
 
+        # Appending to DataFrame
         if counting != RIGHT_AMOUNT:
             if len(v) < 8:
                 REG_HIVE.append(v[1])
@@ -173,7 +177,7 @@ def csv_parser(file_name: str):
                                       })
 
     # print(main_frame)
-    # frame_1.to_csv('file_name')
+    # main_frame.to_csv('file_name')
 
     return main_frame
 
@@ -182,19 +186,31 @@ def create_ps_script(data_frame: pd.DataFrame):
     """Function takes DataFrame as a parameter & creates a PowerShell script for auditing"""
     with open('transcript.ps1', 'a') as transcript:
         for path, name_value in zip(data_frame[KEY_NAMES[1]], data_frame[KEY_NAMES[2]]):
-            
-            # NEEDS SOME WORK TO BE DONE!
+
+            # UN-PACKING lists
             if type(path) == list or type(name_value) == list:
-                pass
+                if len(path) > 1:
+                    for each_path in path:
+                        # print(each_path, name_value[0])
+                        transcript.writelines(
+                            f'Get-ItemProperty -Path "HKLM:\\{each_path}" | Format-List "{name_value[0]}"' + '\n')
+                if len(name_value) > 1:
+                    for each_value in name_value:
+                        # print(path[0], each_value)
+                        transcript.writelines(
+                            f'Get-ItemProperty -Path "HKLM:\\{path[0]}" | Format-List "{each_value}"' + '\n')
+
             # MISSING VALUES - FROM DataFrame - 'Registry Paths' ^
             if path == '':
                 # print('path')
                 pass
-            
+
             # NO TROUBLES HERE
             if type(path) != list or type(name_value) != list:
                 if path != '':
                     transcript.writelines(f'Get-ItemProperty -Path "HKLM:\\{path}" | Format-List "{name_value}"' + '\n')
+                    # print(f'Get-ItemProperty -Path "HKLM:\\{path}" | Format-List "{name_value}"' + '\n')
+                    pass
 
 
 create_ps_script(
