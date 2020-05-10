@@ -6,8 +6,6 @@ import pandas as pd
 import itertools
 
 # Re-usable strings
-from ordered_set import OrderedSet
-
 KEY_NAMES = [
     'Registry Hive',
     'Registry Path',
@@ -18,19 +16,13 @@ KEY_NAMES = [
 ]
 
 
-# Re-usable function to locate indexes in a list
+# Re-usable function to locate indexes of an object in a list
 def find_index(in_list: list, key: str):
     value_names_positions = [i for i in range(len(in_list)) if in_list[i] == key]
     return value_names_positions
 
 
-def find_duplicates(in_list: list):
-    for elem in in_list:
-        if in_list.count(elem) > 1:
-            return True
-    return False
-
-
+# Re-usable function to locate all indexes of an object in a list
 def get_indexes(in_list, element):
     indexPosList = []
     indexPos = 0
@@ -211,6 +203,12 @@ def create_ps_script(data_frame: pd.DataFrame):
                     transcript.writelines(f'Get-ItemProperty -Path "HKLM:\\{path}" | Format-List "{name_value}"' + '\n')
                     # print(f'Get-ItemProperty -Path "HKLM:\\{path}" | Format-List "{name_value}"' + '\n')
                     pass
+
+
+def create_parsed_csv(data_frame: pd.DataFrame, file_name: str):
+    """Writes to a .csv file with all exported values; Registry Hive, Registry Path, Value Name, Value"""
+    data_frame.to_csv(file_name)
+    return
 
 
 create_ps_script(
