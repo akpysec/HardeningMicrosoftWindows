@@ -24,19 +24,19 @@ def find_index(in_list: list, key: str):
 
 # Re-usable function to locate all indexes of an object in a list
 def get_indexes(in_list, element):
-    indexPosList = []
-    indexPos = 0
+    index_pos_list = []
+    index_pos = 0
     while True:
         try:
             # Search for item in list from indexPos to the end of list
-            indexPos = in_list.index(element, indexPos)
+            index_pos = in_list.index(element, index_pos)
             # Add the index position in list
-            indexPosList.append(indexPos)
-            indexPos += 1
+            index_pos_list.append(index_pos)
+            index_pos += 1
         except ValueError as e:
             break
 
-    return indexPosList
+    return index_pos_list
 
 
 def csv_parser(STIG_file_name: str):
@@ -174,9 +174,11 @@ def csv_parser(STIG_file_name: str):
     return main_frame
 
 
-def create_ps_script(data_frame: pd.DataFrame, file_name: str):
+def create_ps_script(data_frame: pd.DataFrame, file_name: str, path: str):
     """Function takes DataFrame as a parameter & creates a PowerShell script for auditing"""
     with open(f'{file_name}.ps1', 'a') as transcript:
+        transcript.writelines('$hostname=hostname\n$ErrorActionPreference="silentlycontinue"\nStart-Transcript -Path '
+                              f'"{path+file_name}.txt" -NoClobber\n\n')
         for path, name_value in zip(data_frame[KEY_NAMES[1]], data_frame[KEY_NAMES[2]]):
 
             # UN-PACKING lists
@@ -204,6 +206,8 @@ def create_ps_script(data_frame: pd.DataFrame, file_name: str):
                     # print(f'Get-ItemProperty -Path "HKLM:\\{path}" | Format-List "{name_value}"' + '\n')
                     pass
 
+        transcript.writelines('\nStop-Transcript\n')
+
 
 def create_parsed_csv(data_frame: pd.DataFrame, file_name: str):
     """Writes to a .csv file with all exported values; Registry Hive, Registry Path, Value Name, Value"""
@@ -211,21 +215,19 @@ def create_parsed_csv(data_frame: pd.DataFrame, file_name: str):
     return
 
 
-create_ps_script(
-    data_frame=csv_parser(
-        STIG_file_name='hardening_guides\\'
-                       'Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'),
-    file_name='transcript')
+def ps_script_output_check(data_frame: pd.DataFrame):
+    """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken
+    parameter"""
+    return
+
+
+# create_ps_script(
+#     data_frame=csv_parser(
+#         STIG_file_name='hardening_guides\\'
+#                        'Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'),
+#     file_name='transcript',
+#     path='K:\\Hardening_for_Microsoft_Windows\\')
 
 # create_parsed_csv(data_frame=csv_parser('hardening_guides\\'
 #                   'Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'), file_name='TEST')
 
-# def ps_script_output_check(data_frame: pd.DataFrame):
-#     """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken
-#     parameter"""
-#     return
-#
-#
-# def local_host_check(data_frame: pd.DataFrame):
-#     """Function takes DataFrame as a parameter & runs auditing check locally against taken parameter"""
-#     return
