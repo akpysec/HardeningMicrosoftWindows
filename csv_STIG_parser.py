@@ -106,7 +106,6 @@ def csv_parser(STIG_file_name: str):
         # CHECK FOR MISSING DATA & MULTIPLE OCCURRENCES
         # Un-packing lists inside 'v' list
         v = list(itertools.chain(*v))
-
         # Dealing with missing data of key-values
         counting = [v.count(KEY_NAMES[0]), v.count(KEY_NAMES[1]), v.count(KEY_NAMES[2]), v.count(KEY_NAMES[3])]
         RIGHT_AMOUNT = list([1, 1, 1, 1])
@@ -218,6 +217,7 @@ def create_parsed_csv(data_frame: pd.DataFrame, file_name: str):
 def ps_script_output_check(data_frame: pd.DataFrame):
     """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken
     parameter"""
+    output_values = []
     with open('output_transcript.txt', 'r', encoding='utf-8') as output:
         value = [v for v in data_frame['Value Name'] if len(v) > 1]
         for line in output:
@@ -227,6 +227,8 @@ def ps_script_output_check(data_frame: pd.DataFrame):
                 line[1] = line[1].strip(' ')
                 if line[0] in value:
                     print(line)
+                else:
+                    print('other shit', line)  # Stopped here - problem may be because of the lower/upper case
     # for i in value:
     #     print(i)
     #     if type(i) == list:
@@ -245,7 +247,6 @@ def ps_script_output_check(data_frame: pd.DataFrame):
 ps_script_output_check(data_frame=csv_parser(
     STIG_file_name='hardening_guides\\Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'))
 
-
 # create_ps_script(
 #     data_frame=csv_parser(
 #         STIG_file_name='hardening_guides\\'
@@ -255,4 +256,3 @@ ps_script_output_check(data_frame=csv_parser(
 
 # create_parsed_csv(data_frame=csv_parser('hardening_guides\\'
 #                   'Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'), file_name='TEST')
-
