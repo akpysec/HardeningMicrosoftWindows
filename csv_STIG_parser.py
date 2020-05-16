@@ -178,7 +178,7 @@ def create_ps_script(data_frame: pd.DataFrame, file_name: str, path: str):
     """Function takes DataFrame as a parameter & creates a PowerShell script for auditing"""
     with open(f'{file_name}.ps1', 'a') as transcript:
         transcript.writelines('$hostname=hostname\n$ErrorActionPreference="silentlycontinue"\nStart-Transcript -Path '
-                              f'"{path+file_name}.txt" -NoClobber\n\n')
+                              f'"{path}output_{file_name}.txt" -NoClobber\n\n')
         for path, name_value in zip(data_frame[KEY_NAMES[1]], data_frame[KEY_NAMES[2]]):
 
             # UN-PACKING lists
@@ -218,7 +218,32 @@ def create_parsed_csv(data_frame: pd.DataFrame, file_name: str):
 def ps_script_output_check(data_frame: pd.DataFrame):
     """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken
     parameter"""
+    with open('output_transcript.txt', 'r', encoding='utf-8') as output:
+        for i, line in enumerate(output):
+            if i == 37:
+                print(line)
+        # for line in output:
+        #     line = line.strip('\n').split(':')
+        #     if len(line) > 1:
+
+                # print(line)
+    # value = [v for v in data_frame['Value'] if len(v) > 1]
+    # for i in value:
+    #     if type(i) == list:
+    #         pass
+    #     elif type(i) != list:
+    #         i = i.split()
+    #         if i[0].startswith('0x'):
+    #             print(int(i[0], 16))
+    #         elif not i[0].startswith('0x'):
+    #             print(i)
+            # print(i.split())
+    # print(value)
     return
+
+
+ps_script_output_check(data_frame=csv_parser(
+    STIG_file_name='hardening_guides\\Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'))
 
 
 # create_ps_script(
