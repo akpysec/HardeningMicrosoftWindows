@@ -219,16 +219,16 @@ def ps_script_output_check(data_frame: pd.DataFrame):
     """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken
     parameter"""
     with open('output_transcript.txt', 'r', encoding='utf-8') as output:
-        for i, line in enumerate(output):
-            if i == 37:
-                print(line)
-        # for line in output:
-        #     line = line.strip('\n').split(':')
-        #     if len(line) > 1:
-
-                # print(line)
-    # value = [v for v in data_frame['Value'] if len(v) > 1]
+        value = [v for v in data_frame['Value Name'] if len(v) > 1]
+        for line in output:
+            line = line.strip('\n').split(':')
+            if len(line) > 1:
+                line[0] = line[0].strip(' ')
+                line[1] = line[1].strip(' ')
+                if line[0] in value:
+                    print(line)
     # for i in value:
+    #     print(i)
     #     if type(i) == list:
     #         pass
     #     elif type(i) != list:
@@ -237,9 +237,9 @@ def ps_script_output_check(data_frame: pd.DataFrame):
     #             print(int(i[0], 16))
     #         elif not i[0].startswith('0x'):
     #             print(i)
-            # print(i.split())
+    #         print(i.split())
     # print(value)
-    return
+    # return
 
 
 ps_script_output_check(data_frame=csv_parser(
