@@ -220,15 +220,15 @@ def ps_script_output_check(data_frame: pd.DataFrame):
     output_values = []
     with open('output_transcript.txt', 'r', encoding='utf-8') as output:
         value = [v for v in data_frame['Value Name'] if len(v) > 1]
+        value = [x.casefold() for x in value if type(x) != list]
         for line in output:
             line = line.strip('\n').split(':')
             if len(line) > 1:
                 line[0] = line[0].strip(' ')
                 line[1] = line[1].strip(' ')
-                if line[0] in value:
-                    print(line)
-                else:
-                    print('other shit', line)  # Stopped here - problem may be because of the lower/upper case
+                if line[0].casefold() in value:
+                    print(data_frame.index[data_frame[line[0]]])    # Find corresponding value in DataFrame
+
     # for i in value:
     #     print(i)
     #     if type(i) == list:
