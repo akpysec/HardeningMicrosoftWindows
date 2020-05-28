@@ -2,6 +2,8 @@
 # To get .csv hardening guides go to "https://www.stigviewer.com/stigs"
 
 import collections
+import re
+
 import pandas as pd
 import itertools
 
@@ -214,20 +216,26 @@ def create_parsed_csv(data_frame: pd.DataFrame, file_name: str):
     return
 
 
-def ps_script_output_check(data_frame: pd.DataFrame):
+def ps_script_output_check(data_frame: pd.DataFrame, powershell_output: str):
     """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken
     parameter"""
     output_values = []
-    with open('output_transcript.txt', 'r', encoding='utf-8') as output:
+    with open(powershell_output, 'r', encoding='utf-8') as output:
         value = [v for v in data_frame['Value Name'] if len(v) > 1]
         value = [x.casefold() for x in value if type(x) != list]
+        value_lists = [x.casefold() for x in value if type(x) == list]  # Deal with values that are in lists
+
         for line in output:
             line = line.strip('\n').split(':')
             if len(line) > 1:
                 line[0] = line[0].strip(' ')
                 line[1] = line[1].strip(' ')
+                newD = data_frame.loc[data_frame[KEY_NAMES[2]].str.lower() == line[0].lower()]
+                print(newD.loc[newD.index.unique()]['Value'])
+
                 if line[0].casefold() in value:
-                    print(data_frame.index[data_frame[line[0]]])    # Find corresponding value in DataFrame
+                    pass
+                    # print(data_frame.index[data_frame[line[0]]])    # Find corresponding value in DataFrame
 
     # for i in value:
     #     print(i)
@@ -245,7 +253,8 @@ def ps_script_output_check(data_frame: pd.DataFrame):
 
 
 ps_script_output_check(data_frame=csv_parser(
-    STIG_file_name='hardening_guides\\Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'))
+    STIG_file_name='hardening_guides\\Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'),
+    powershell_output='output_transcript.txt')
 
 # create_ps_script(
 #     data_frame=csv_parser(
