@@ -180,7 +180,7 @@ def create_ps_script(data_frame: pd.DataFrame, file_name: str, path: str):
     with open(f'{file_name}.ps1', 'a') as transcript:
         transcript.writelines('$hostname=hostname\n$ErrorActionPreference="silentlycontinue"\nStart-Transcript -Path '
                               f'"{path}output_{file_name}.txt" -NoClobber\n\n')
-        for path, name_value, title in zip(data_frame[KEY_NAMES[1]], data_frame[KEY_NAMES[2]], data_frame['title']):
+        for path, name_value, title, sev in zip(data_frame[KEY_NAMES[1]], data_frame[KEY_NAMES[2]], data_frame['title'], data_frame['severity']):
 
             # UN-PACKING lists
             if type(path) == list or type(name_value) == list:
@@ -188,13 +188,13 @@ def create_ps_script(data_frame: pd.DataFrame, file_name: str, path: str):
                     for each_path in path:
                         # print(each_path, name_value[0])
                         transcript.writelines(
-                            '# ' + title + '\n'
+                            f'# Severity: {sev.upper()} | Title: ' + title + '\n'
                             f'Get-ItemProperty -Path "HKLM:\\{each_path}" | Format-List "{name_value[0]}"' + '\n\n')
                 if len(name_value) > 1:
                     for each_value in name_value:
                         # print(path[0], each_value)
                         transcript.writelines(
-                            '# ' + title + '\n'
+                            f'# Severity: {sev.upper()} | Title: ' + title + '\n'
                             f'Get-ItemProperty -Path "HKLM:\\{path[0]}" | Format-List "{each_value}"' + '\n\n')
 
             # MISSING VALUES - FROM DataFrame - 'Registry Paths' - Needs to be handled in 'csv_parser' function
@@ -206,7 +206,7 @@ def create_ps_script(data_frame: pd.DataFrame, file_name: str, path: str):
             if type(path) != list or type(name_value) != list:
                 if path != '':
                     transcript.writelines(
-                        '# ' + title + '\n'
+                        f'# Severity: {sev.upper()} | Title: ' + title + '\n'
                         f'Get-ItemProperty -Path "HKLM:\\{path}" | Format-List "{name_value}"' + '\n\n')
                     # print(f'Get-ItemProperty -Path "HKLM:\\{path}" | Format-List "{name_value}"' + '\n')
                     pass
@@ -249,17 +249,6 @@ def ps_script_output_check(data_frame: pd.DataFrame, powershell_output: str):
         print(data_frame.loc[idd, 'Value Name'], val_nam)
         # print(data_frame.loc[idd, 'Value'], '*****', val)     # STIG values retrieving
 
-    # for i in value:
-    #     print(i)
-    #     if type(i) == list:
-    #         pass
-    #     elif type(i) != list:
-    #         i = i.split()
-    #         if i[0].startswith('0x'):
-    #             print(int(i[0], 16))
-    #         elif not i[0].startswith('0x'):
-    #             print(i)
-    #         print(i.split())
     # print(value)
     # return
 
