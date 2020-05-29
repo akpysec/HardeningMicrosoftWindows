@@ -180,7 +180,7 @@ def create_ps_script(data_frame: pd.DataFrame, file_name: str, path: str):
     with open(f'{file_name}.ps1', 'a') as transcript:
         transcript.writelines('$hostname=hostname\n$ErrorActionPreference="silentlycontinue"\nStart-Transcript -Path '
                               f'"{path}output_{file_name}.txt" -NoClobber\n\n')
-        for path, name_value in zip(data_frame[KEY_NAMES[1]], data_frame[KEY_NAMES[2]]):
+        for path, name_value, title in zip(data_frame[KEY_NAMES[1]], data_frame[KEY_NAMES[2]], data_frame['title']):
 
             # UN-PACKING lists
             if type(path) == list or type(name_value) == list:
@@ -188,12 +188,14 @@ def create_ps_script(data_frame: pd.DataFrame, file_name: str, path: str):
                     for each_path in path:
                         # print(each_path, name_value[0])
                         transcript.writelines(
-                            f'Get-ItemProperty -Path "HKLM:\\{each_path}" | Format-List "{name_value[0]}"' + '\n')
+                            '# ' + title + '\n'
+                            f'Get-ItemProperty -Path "HKLM:\\{each_path}" | Format-List "{name_value[0]}"' + '\n\n')
                 if len(name_value) > 1:
                     for each_value in name_value:
                         # print(path[0], each_value)
                         transcript.writelines(
-                            f'Get-ItemProperty -Path "HKLM:\\{path[0]}" | Format-List "{each_value}"' + '\n')
+                            '# ' + title + '\n'
+                            f'Get-ItemProperty -Path "HKLM:\\{path[0]}" | Format-List "{each_value}"' + '\n\n')
 
             # MISSING VALUES - FROM DataFrame - 'Registry Paths' - Needs to be handled in 'csv_parser' function
             if path == '':
@@ -203,7 +205,9 @@ def create_ps_script(data_frame: pd.DataFrame, file_name: str, path: str):
             # NO TROUBLES HERE
             if type(path) != list or type(name_value) != list:
                 if path != '':
-                    transcript.writelines(f'Get-ItemProperty -Path "HKLM:\\{path}" | Format-List "{name_value}"' + '\n')
+                    transcript.writelines(
+                        '# ' + title + '\n'
+                        f'Get-ItemProperty -Path "HKLM:\\{path}" | Format-List "{name_value}"' + '\n\n')
                     # print(f'Get-ItemProperty -Path "HKLM:\\{path}" | Format-List "{name_value}"' + '\n')
                     pass
 
@@ -219,11 +223,14 @@ def create_parsed_csv(data_frame: pd.DataFrame, file_name: str):
 def ps_script_output_check(data_frame: pd.DataFrame, powershell_output: str):
     """Function takes DataFrame as a parameter & runs auditing check over PS script output file against taken
     parameter"""
-    output_values = []
+
+    ids = list()
+    output_values = list()
+    output_value_names = list()
+
     with open(powershell_output, 'r', encoding='utf-8') as output:
         value = [v for v in data_frame['Value Name'] if len(v) > 1]
         value = [x.casefold() for x in value if type(x) != list]
-        value_lists = [x.casefold() for x in value if type(x) == list]  # Deal with values that are in lists
 
         for line in output:
             line = line.strip('\n').split(':')
@@ -231,11 +238,16 @@ def ps_script_output_check(data_frame: pd.DataFrame, powershell_output: str):
                 line[0] = line[0].strip(' ')
                 line[1] = line[1].strip(' ')
                 newD = data_frame.loc[data_frame[KEY_NAMES[2]].str.lower() == line[0].lower()]
-                print(newD.loc[newD.index.unique()]['Value'])
-
+                ids.append(list(newD.index))
                 if line[0].casefold() in value:
-                    pass
-                    # print(data_frame.index[data_frame[line[0]]])    # Find corresponding value in DataFrame
+                    output_values.append(line[1])
+                    output_value_names.append(line[0])
+
+    ids = list(itertools.chain(*ids))
+
+    for idd, val, val_nam in zip(ids, output_values, output_value_names):
+        print(data_frame.loc[idd, 'Value Name'], val_nam)
+        # print(data_frame.loc[idd, 'Value'], '*****', val)     # STIG values retrieving
 
     # for i in value:
     #     print(i)
@@ -252,16 +264,16 @@ def ps_script_output_check(data_frame: pd.DataFrame, powershell_output: str):
     # return
 
 
-ps_script_output_check(data_frame=csv_parser(
-    STIG_file_name='hardening_guides\\Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'),
-    powershell_output='output_transcript.txt')
+# ps_script_output_check(data_frame=csv_parser(
+#     STIG_file_name='hardening_guides\\Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'),
+#     powershell_output='output_transcript.txt')
 
-# create_ps_script(
-#     data_frame=csv_parser(
-#         STIG_file_name='hardening_guides\\'
-#                        'Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'),
-#     file_name='transcript',
-#     path='K:\\Hardening_for_Microsoft_Windows\\')
+create_ps_script(
+    data_frame=csv_parser(
+        STIG_file_name='hardening_guides\\'
+                       'Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'),
+    file_name='transcript',
+    path='K:\\Hardening_for_Microsoft_Windows\\')
 
 # create_parsed_csv(data_frame=csv_parser('hardening_guides\\'
 #                   'Windows 10 Security Technical Implementation Guide-MAC-3_Sensitive.csv'), file_name='TEST')
