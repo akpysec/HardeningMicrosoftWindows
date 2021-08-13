@@ -1,4 +1,4 @@
-# Hardening_for_Microsoft_Windows
+# Hardening for Microsoft Windows
 *Tested & made only for Windows for now,
 later will create Linux .csv parser & hardening guide script just as for Windows operating Systems
 
